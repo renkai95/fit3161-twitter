@@ -1,6 +1,7 @@
 import json
-with open("irma.json",'r',encoding='utf-8') as json_file:
-    f= open("irma_cleaned.json","w+")
+with open("harvey.json",'r',encoding='utf-8') as json_file:
+    f= open("harvey_cleaned.json","w+")
+    f.write("{")
     for line in json_file:
         data = json.loads(line)
         #print(json.dumps(data,indent=4,sort_keys=True))
@@ -24,6 +25,9 @@ with open("irma.json",'r',encoding='utf-8') as json_file:
         newDict['full_text']=data['full_text']
         
         f.write(json.dumps(newDict))
+        f.write("\n,")
         #print(newDict)
         #print(data['created_at'])
+
+    f.write("{}}")
     f.close()

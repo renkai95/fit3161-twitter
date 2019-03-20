@@ -11,7 +11,7 @@ with open("harvey.json",'r',encoding='utf-8') as json_file:
             idDict[data['id_str']]=data['id_str']
             f.write('"'+data['id_str']+'":')
             newDict['created_at']=data['created_at']
-            newDict['id_str']=data['id_str']
+            #newDict['id_str']=data['id_str']
             newDict['in_reply_to_status_id_str']=data['in_reply_to_status_id_str']
             newDict['in_reply_to_user_id_str']=data['in_reply_to_user_id_str']
             newDict['in_reply_to_screen_name']=data['in_reply_to_screen_name']
@@ -24,7 +24,7 @@ with open("harvey.json",'r',encoding='utf-8') as json_file:
             newDict['favorite_count']=data['favorite_count']
             newDict['full_text']=data['full_text']        
             f.write(json.dumps(newDict))
-            f.write("\n,")
+            f.write(",\n")
 
     f.write('"last":{}}')
     f.close()

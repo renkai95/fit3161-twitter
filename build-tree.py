@@ -1,25 +1,24 @@
+import csv
+harvey_id={}
+replied_to={}
+replied_to_id={}
 
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
- 
-import ijson
- 
- 
-def parse_json(json_filename):
-    with open(json_filename, 'rb') as input_file:
-        # load json iteratively
-        parser = ijson.parse(input_file)
-        for prefix, event, value in parser:
-            print('prefix={}, event={}, value={}'.format(prefix, event, value))
- 
- 
-if __name__ == '__main__':
-    parse_json('../DATA/irma_cleaned.json')
+with open('../DATA/harvey_ids.csv') as inputFile:
+    for row in inputFile:
+        harvey_id[row]=''
+    f = open('../DATA/harvey_replies.csv')
+    for row in f:
+        temp=row.split(',')
+        replied_to[temp[1]]=''
+        replied_to_id[temp[0]]=''
+    f.close()
+repliesFound=0
+for k in replied_to:
+    try: 
+        harvey_id[k]
+        repliesFound+=1
+    except KeyError:
+        pass
+
+print(repliesFound)
+print(len(harvey_id))

@@ -15,7 +15,6 @@ with open("../DATA/irma.json",'r',encoding='utf-8') as json_file:
             newDict['in_reply_to_user_id_str']=data['in_reply_to_user_id_str']
             newDict['in_reply_to_screen_name']=data['in_reply_to_screen_name']
             #if len(data['entities']['hashtags'])>0:
-
             #    newDict['hashtags']=data['entities']['hashtags'][0]['text']
             newDict['user_id_str']=data['user']['id_str']
             newDict['user_followers_count']=data['user']['followers_count']

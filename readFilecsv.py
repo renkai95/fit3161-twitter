@@ -1,10 +1,10 @@
 import json
 import csv
-with open("../DATA/harvey.json",'r',encoding='utf-8') as json_file:
+with open("../DATA/irma.json",'r',encoding='utf-8') as json_file:
     dictList=[]
     idDict={}
     
-    f= open("../DATA/harvey_cleaned.csv","w+",encoding='utf-8')
+    f= open("../DATA/irma_cleaned.csv","w+",encoding='utf-8',newline='')
     #f.write("{")
     for line in json_file:
         data = json.loads(line)
@@ -18,16 +18,20 @@ with open("../DATA/harvey.json",'r',encoding='utf-8') as json_file:
            
             newDict['in_reply_to_status_id_str']=data['in_reply_to_status_id_str']
             newDict['in_reply_to_user_id_str']=data['in_reply_to_user_id_str']
+            #print(data)
+            
             newDict['in_reply_to_screen_name']=data['in_reply_to_screen_name']
+            if newDict['in_reply_to_screen_name']:
+                newDict['in_reply_to_screen_name']=newDict['in_reply_to_screen_name'].encode(encoding='UTF-8',errors='replace')
             #if len(data['entities']['hashtags'])>0:
 
             #    newDict['hashtags']=data['entities']['hashtags'][0]['text']
             newDict['user_id_str']=data['user']['id_str']
             newDict['user_followers_count']=data['user']['followers_count']
-            newDict['user_name']=data['user']['name']
+            newDict['user_name']=data['user']['name'].encode(encoding='UTF-8',errors='replace')
             newDict['retweet_count']=data['retweet_count']
             newDict['favorite_count']=data['favorite_count']
-            newDict['full_text']=data['full_text']
+            newDict['full_text']=(data['full_text'].replace('\n','')).encode(encoding='UTF-8',errors='replace')
             dictList.append(newDict)     
             #f.write(json.dumps(newDict))
             #f.write(",\n")
@@ -36,7 +40,7 @@ with open("../DATA/harvey.json",'r',encoding='utf-8') as json_file:
     #f.write('"last":{}}')
     print(dictList[0])
     csv_columns=list(dictList[0].keys())
-    writer = csv.DictWriter(f, fieldnames=csv_columns)
+    writer = csv.DictWriter(f, fieldnames=csv_columns,quotechar='|',delimiter=',')
     writer.writeheader()
     for data in dictList:
         #print(data)

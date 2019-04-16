@@ -12,6 +12,10 @@ replied_to=[]
 replied_to_id=[]
 replied_inlist={}
 tree= []
+font = {'family' : 'normal',
+        'size'   : 1}
+
+plt.rc('font', **font)
 with open('../DATA/harvey_ids.csv') as inputFile:
     for row in inputFile:
         harvey_id[row.rstrip()]=row.rstrip()
@@ -94,7 +98,10 @@ with open('../DATA/logfile.txt','w') as logFile:
             pprint.pprint(row, logFile)
 
 '''
-#plt.rcParams["figure.figsize"] = [10,8]
+fig_size = plt.rcParams["figure.figsize"]
+fig_size[0] = 12
+fig_size[1] = 12
+plt.rcParams["figure.figsize"] = fig_size
 print(forest[0])
 forest.sort(key=lambda x:len(x),reverse=0)
 for row in forest:
@@ -113,10 +120,11 @@ for row in forest:
             g.add_edge(row['id'],child['id'])
         test=0
     
-    nx.draw_networkx(g, pos = nx.fruchterman_reingold_layout(g))
+    nx.draw_networkx(g, pos = nx.fruchterman_reingold_layout(g),node_size =10,font_size=1,width =0.08)
     #nx.draw_networkx_edge_labels(g, pos = nx.fruchterman_reingold_layout(g))
     #plt.figure(figsize=(4,3))
-    plt.savefig('../DATA/graph'+str(forest.index(row))+'.png' ,dpi = 300)
+    plt.savefig('../DATA/graph'+str(forest.index(row))+'.png' ,dpi = 1000)
+    print(str(forest.index(row)))
     g.clear()
     plt.clf()
 cnx.close()

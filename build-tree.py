@@ -1,5 +1,12 @@
 import csv
 import pprint
+import mysql.connector
+import networkx as nx
+import matplotlib.pyplot as plt
+cnx = mysql.connector.connect(user='root', password='password',
+                              host='127.0.0.1',
+                              database='twitter')
+cursor = cnx.cursor()
 harvey_id={}
 replied_to=[]
 replied_to_id=[]
@@ -80,21 +87,38 @@ for i in replied_to:
             parent['id_children'] = []
         children = parent['id_children']
         children.append(node)
+        '''
 with open('../DATA/logfile.txt','w') as logFile:
     for row in forest:
         if len(row)>1:
             pprint.pprint(row, logFile)
 
 '''
-for row in tree:
-    for test in tree:
-        print(tree.index(row))
-        if row!=test:
-            if len(row)> len(test):
-                if str(test) in str(row):
-                    tree.remove(test)
-            else:
-                if str(row) in str(test):
-                    tree.remove(row)
-'''
+#plt.rcParams["figure.figsize"] = [10,8]
+print(forest[0])
+forest.sort(key=lambda x:len(x),reverse=0)
+for row in forest:
+    test = 1
+    import networkx as nx
+    g = nx.Graph()
+    #print(g)
+    while test == 1:
+        try:
+            row['id_children']
+        except KeyError:
+            test = 0
+        g.add_node(row['id'])
+        for child in row['id_children']:
+            g.add_node(child['id'])
+            g.add_edge(row['id'],child['id'])
+        test=0
+    
+    nx.draw_networkx(g, pos = nx.fruchterman_reingold_layout(g))
+    #nx.draw_networkx_edge_labels(g, pos = nx.fruchterman_reingold_layout(g))
+    #plt.figure(figsize=(4,3))
+    plt.savefig('../DATA/graph'+str(forest.index(row))+'.png' ,dpi = 300)
+    g.clear()
+    plt.clf()
+cnx.close()
+
 

@@ -3,6 +3,22 @@ import pprint
 import mysql.connector
 import networkx as nx
 import matplotlib.pyplot as plt
+import networkx as nx
+import numpy as np
+
+
+def traverse(g,node,harvey_id):
+    #g.add_node(node['id'])
+    try:
+        node['id_children']
+    except KeyError:
+        return
+    for child in node['id_children']:
+        g.add_node(harvey_id[child['id']])
+        g.add_node(harvey_id[node['id']])
+        g.add_edge(harvey_id[child['id']],harvey_id[node['id']])
+        traverse(g,child,harvey_id)
+
 cnx = mysql.connector.connect(user='root', password='password',
                               host='127.0.0.1',
                               database='twitter')
@@ -12,6 +28,7 @@ replied_to=[]
 replied_to_id=[]
 replied_inlist={}
 tree= []
+
 font = {'family' : 'normal',
         'size'   : 1}
 
@@ -27,6 +44,8 @@ with open('../DATA/harvey_ids.csv') as inputFile:
             harvey_id[temp[1].rstrip()]
             replied_to.append((temp[0].rstrip(),temp[1].rstrip()))
             replied_inlist[temp[0].rstrip()]=temp[1].rstrip()
+            harvey_id[temp[0].rstrip()]=temp[2].rstrip()
+            harvey_id[temp[1].rstrip()]=temp[3].rstrip()
         except KeyError:
             pass
         
@@ -63,7 +82,17 @@ for i in replied_to:
             parent['id_children'] = []
         children = parent['id_children']
         children.append(node)
-        '''
+for row in forest:
+    try:
+        row["id_children"]
+    except KeyError:
+        forest.remove(row)
+forest.sort(key=lambda x:len(x["id_children"]),reverse=1)
+
+forest = list({v['id']:v for v in forest}.values())
+print(len(forest))
+print(forest.count(forest[0]))
+'''
 with open('../DATA/logfile.txt','w') as logFile:
     for row in forest:
         if len(row)>1:
@@ -71,38 +100,34 @@ with open('../DATA/logfile.txt','w') as logFile:
 
 '''
 fig_size = plt.rcParams["figure.figsize"]
-fig_size[0] = 12
-fig_size[1] = 12
+fig_size[0] = 6
+fig_size[1] = 6
 plt.rcParams["figure.figsize"] = fig_size
-for row in forest:
-    try:
-        row["id_children"]
-    except KeyError:
-        forest.remove(row)
-forest.sort(key=lambda x:len(x["id_children"]),reverse=1)
-for row in forest:
+
+for row in range(len(forest)) :
     test = 1
-    import networkx as nx
+    #print(row)
     g = nx.Graph()
+    traverse(g,forest[row],harvey_id)
     #print(g)
+    '''
     while test == 1:
         try:
-            row['id_children']
+            forest[row]['id_children']
         except KeyError:
             test = 0
-        g.add_node(row['id'])
-        for child in row['id_children']:
-            g.add_node(child['id'])
-            g.add_edge(row['id'],child['id'])
+        g.add_node(harvey_id[forest[row]['id']])
+        for child in forest[row]['id_children']:
+            g.add_node(harvey_id[child['id']])
+            g.add_edge(harvey_id[forest[row]['id']],harvey_id[child['id']])
         test=0
-    
-    nx.draw_networkx(g, pos = nx.fruchterman_reingold_layout(g),node_size =10,font_size=1,width =0.08)
-    #nx.draw_networkx_edge_labels(g, pos = nx.fruchterman_reingold_layout(g))
-    #plt.figure(figsize=(4,3))
-    plt.savefig('../DATA/graph'+str(forest.index(row))+'.png' ,dpi = 1000)
-    print(str(forest.index(row)))
+    '''
+    d=dict(g.degree)
+    nx.draw_networkx(g, pos = nx.fruchterman_reingold_layout(g),node_size=[v * 6 for v in d.values()],font_size=1,width =0.08)
+    plt.savefig('../DATA/graph'+str(row)+'.png' ,dpi = 1200)
+    print(row)
     g.clear()
     plt.clf()
-cnx.close()
 
+cnx.close()
 

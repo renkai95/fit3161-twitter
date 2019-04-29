@@ -74,8 +74,12 @@ fig_size = plt.rcParams["figure.figsize"]
 fig_size[0] = 12
 fig_size[1] = 12
 plt.rcParams["figure.figsize"] = fig_size
-print(forest[0])
-forest.sort(key=lambda x:len(x),reverse=0)
+for row in forest:
+    try:
+        row["id_children"]
+    except KeyError:
+        forest.remove(row)
+forest.sort(key=lambda x:len(x["id_children"]),reverse=1)
 for row in forest:
     test = 1
     import networkx as nx

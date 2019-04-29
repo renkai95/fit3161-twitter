@@ -37,35 +37,7 @@ for row in range(len(replied_to)):
         replied_inlist[y]
     except KeyError:
         replied_to.append((y,y))
-'''
-#print(harvey_id)
-for k,v in replied_to.items():
-    try: 
-        harvey_id[v]
-        repliesFound+=1
-    except KeyError:
-        pass
-for k,v in replied_to.items():
-    tree.append([])
-
-    tree[-1].append(k)
-    x= k
-    try:
-        while replied_to[x] is not None:
-            x=replied_to[x]
-            if len(x)>0:
-                tree[-1].append(x)
-    except KeyError:
-        pass
-    try:
-        harvey_id[tree[-1][-1]]
-        if len(harvey_id[tree[-1][-1]])>0:
-            tree[-1].append(harvey_id[tree[-1][-1]])
-
-    except KeyError:
-        pass
-    tree[-1].reverse()
-'''
+    
 #print(replied_to)
 nodes = {}
 for i in harvey_id:

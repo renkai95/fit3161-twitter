@@ -1,6 +1,6 @@
 import csv
 import pprint
-import mysql.connector
+#import mysql.connector
 import networkx as nx
 import matplotlib.pyplot as plt
 harvey_id = []

@@ -1,4 +1,5 @@
-# import csv;
+import csv
+
 # #ways to categorize
 #
 #
@@ -25,13 +26,19 @@
 
 
 
-def readLexicon():
+def readLexicon(lexfilename):
+    #Function description: Takes the lexicon text file as input and return an array. Note that the array follow the form of:
+    #                      [word followed by 1st to 10th sentiment in this order]:
+    #                      [word, anger, anticipation, disgust, fear, joy, negative, positive, sadness, surprise, trust]
+    #                      which means each array entry shows the 'word' followed by its 10 sentiments
+
+
 
     #initialize array for lexicon
     lexiconArray = []
 
     # open lexicon text for reading and skip first line since its empty
-    lexicon = open("lexicon.txt")
+    lexicon = open(lexfilename)
     next(lexicon)
 
     # for each 1st of 10 line read,
@@ -63,6 +70,10 @@ def readLexicon():
 
 
 def createhashtable(lexiconArray):
+    #Function description: takes the array from readLexicon and create and return a hash table. The each entry in the
+    #                      hash table array is in the form of [word, index_number_for_the_word_in_readLexicon_array]
+
+
 
     #create hash table, the first hashing function is python's hash() function
     #in case of collisions, double probing is used where the same python's hash function is used but the input for the hash function has "jump appended to it
@@ -83,7 +94,7 @@ def createhashtable(lexiconArray):
                 addhashindex = (addhashindex + probingjump) % hashtSize
 
                 if hashtablelex[addhashindex] == []:
-                    hashtablelex[addhashindex] = [k[0],currentindex]
+                    hashtablelex[addhashindex] = [k[0], currentindex]
                     break
 
         currentindex += 1
@@ -91,12 +102,10 @@ def createhashtable(lexiconArray):
     return hashtablelex
 
 
-
 def matchtohashtable(fullword,lexiconArray,hashtablelex):
-
-    #matches fullword to its resective word in lexiconArray, returns:
-    #  the match word withs its sentiments if found,
-    #  None value if not found
+    #Function description: matches fullword to its resective word in lexiconArray, returns:
+    #                      index for the matched word withs its sentiments in lexiconArray if found,
+    #                      None value if not found
 
     hashtSize = len(hashtablelex)
     checkinghashindex = hash(fullword)% hashtSize
@@ -108,20 +117,10 @@ def matchtohashtable(fullword,lexiconArray,hashtablelex):
         while True:
             checkinghashindex = (checkinghashindex + probingjump) % hashtSize
 
-            if hashtablelex[checkinghashindex] == []
+            if hashtablelex[checkinghashindex] == []:
                 return None;
             if hashtablelex[checkinghashindex][0] == fullword:
                 return lexiconArray[hashtablelex[checkinghashindex][1]]
-
-
-
-
-
-def preprocesstweetforNLP(original_full_text):
-    #can edit this function for preprocessing
-    return original_full_text.split()
-
-
 
 
 def calculatesentimentscorefortweet(full_text,lexiconArray,hashtablelex):
@@ -137,18 +136,39 @@ def calculatesentimentscorefortweet(full_text,lexiconArray,hashtablelex):
     return sentimentscores
 
 
-
 def updatescores(sentimentscores,resultt):
     #updates sentiment score using result from matching using hash table and word in tweet
     scoreindex = 0
-    resultindexx = 1
+    resultindexx = 0
 
-    for k in sentimentscores:
-        sentimentscores[scoreindex] += resultt[resultindexx]
-        scoreindex += 1
+    for k in resultt:
+        #if statement used to skip first entry because resultt also contains the one word matched, not only sentiment
+        # scores.
+        if resultindexx != 0:
+            sentimentscores[scoreindex] += int(resultt[resultindexx])
+            scoreindex += 1
         resultindexx += 1
 
     return sentimentscores
+
+
+def preprocesstweetforNLP(original_full_text):
+    #can edit this function for preprocessing
+    return original_full_text.split()
+
+
+def load_fulltext(fulltextfile):
+
+
+    textfile = open(fulltextfile, 'r')
+
+    csvreaderfulltext = csv.reader(textfile)
+
+    #skip first line its csv because the line contains only row header
+    next(csvreaderfulltext, None)
+
+
+    return csvreaderfulltext
 
 
 
@@ -169,7 +189,7 @@ if __name__ == "__main__":
     # print("a")
     #
 
-    lexiconArray = readLexicon()
+    lexiconArray = readLexicon('lexicon.txt')
 
     # print(lexiconArray)
     # print(len(lexiconArray))
@@ -183,12 +203,30 @@ if __name__ == "__main__":
     print(hashtablelex)
     print(len(hashtablelex))
 
+    print(matchtohashtable('praiseworthy',lexiconArray,hashtablelex))
+    print(calculatesentimentscorefortweet(['praiseworthy'], lexiconArray, hashtablelex))
+
     #todo:
     #load full_text
     #use preprocesstweetforNLP() on full_text
     #use calculatesentimentscorefortweet() on preprocessed full_text
     #testing of all functions
+    #_____________________________________________________________________________________
 
+
+
+
+    print('_____________________________________________________________________________    ')
+
+    csvreaderfulltext = load_fulltext("irma_fulltext.csv")
+    #
+    # row_count = sum(1 for row in csvreaderfulltext)
+    # print(row_count)
+    for row in csvreaderfulltext:
+        print(row)
+        break
+
+    print('|||||||||||||||||||HHH||||||')
 
 
 

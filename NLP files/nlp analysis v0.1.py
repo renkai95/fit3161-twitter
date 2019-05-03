@@ -1,4 +1,5 @@
 import csv
+import re
 
 # #ways to categorize
 #
@@ -111,24 +112,31 @@ def matchtohashtable(fullword,lexiconArray,hashtablelex):
     checkinghashindex = hash(fullword)% hashtSize
     probingjump = hash(fullword + "jump") % hashtSize
 
-    if hashtablelex[checkinghashindex][0] == fullword:
-        return lexiconArray[hashtablelex[checkinghashindex][1]]
+
+    #if the data at the index is not [], check if it is in the table and return it if it is, None if it is not,
+    # if it is [], it means the word is not in the hash table so return None
+    if hashtablelex[checkinghashindex] != []:
+        if hashtablelex[checkinghashindex][0] == fullword:
+            return lexiconArray[hashtablelex[checkinghashindex][1]]
+        else:
+            while True:
+                checkinghashindex = (checkinghashindex + probingjump) % hashtSize
+
+                if hashtablelex[checkinghashindex] == []:
+                    return None;
+                else:
+                    if hashtablelex[checkinghashindex][0] == fullword:
+                        return lexiconArray[hashtablelex[checkinghashindex][1]]
     else:
-        while True:
-            checkinghashindex = (checkinghashindex + probingjump) % hashtSize
-
-            if hashtablelex[checkinghashindex] == []:
-                return None;
-            if hashtablelex[checkinghashindex][0] == fullword:
-                return lexiconArray[hashtablelex[checkinghashindex][1]]
+        return None
 
 
-def calculatesentimentscorefortweet(full_text,lexiconArray,hashtablelex):
+def wordsentimentcalculation(tweetwordarray, lexiconArray, hashtablelex):
     #ensure full_text has been preprocessed, so its form should be an array of words
     #this functions does not analyse emoticons
 
     sentimentscores = [0,0,0,0,0,0,0,0,0,0]
-    for word in full_text:
+    for word in tweetwordarray:
         resultt = matchtohashtable(word, lexiconArray, hashtablelex)
         if resultt != None:
             sentimentscores = updatescores(sentimentscores,resultt);
@@ -152,11 +160,6 @@ def updatescores(sentimentscores,resultt):
     return sentimentscores
 
 
-def preprocesstweetforNLP(original_full_text):
-    #can edit this function for preprocessing
-    return original_full_text.split()
-
-
 def load_fulltext(fulltextfile):
 
 
@@ -167,8 +170,30 @@ def load_fulltext(fulltextfile):
     #skip first line its csv because the line contains only row header
     next(csvreaderfulltext, None)
 
+    #calculate number of rows in the csv and return pointer back to the top of the file
+    row_count = sum(1 for row in csvreaderfulltext)
+    textfile.seek(0)
+    next(csvreaderfulltext, None)
 
-    return csvreaderfulltext
+
+
+    return [csvreaderfulltext, row_count]
+
+
+def preprocesstweettextforanalysis(tweettext):
+    #Function description: Takes the tweet fulltext as inoput and returns an array of words in the fulltext, where
+    #                      any non-lowercase-ASCII-letter are not included.
+
+    #set all words in tweet text to lower case
+    tweettext = tweettext.lower()
+
+    #replace all non-lowercase-ASCII-letter from tweet text with space.
+    tweettext = re.sub("[^a-z]", " ", tweettext)
+
+
+    return tweettext.split()
+
+
 
 
 
@@ -178,7 +203,8 @@ if __name__ == "__main__":
     #extra documentation:
     #lexiconArray should be of size 14182 unless a different lexicon is used
     #the size of hash table at approximately 70% load factor created based on lexiconArray is 20261, and 20261 is chosen because it is a prime nuber
-
+    #this program does not analyse emoticon for sentiments, but if desired, it can be added later by adding sentiment
+    # scores into the emolex and modify the preprocesstweettextforanalysis to tokenize emoticons too
 
     # import pandas as pd
     # df = pd.read_csv("irma_cleaned.csv")
@@ -188,6 +214,9 @@ if __name__ == "__main__":
     # print(df["full_text"])
     # print("a")
     #
+
+
+    print('_______________________START______________________________________________________    ')
 
     lexiconArray = readLexicon('lexicon.txt')
 
@@ -204,27 +233,49 @@ if __name__ == "__main__":
     print(len(hashtablelex))
 
     print(matchtohashtable('praiseworthy',lexiconArray,hashtablelex))
-    print(calculatesentimentscorefortweet(['praiseworthy'], lexiconArray, hashtablelex))
-
-    #todo:
-    #load full_text
-    #use preprocesstweetforNLP() on full_text
-    #use calculatesentimentscorefortweet() on preprocessed full_text
-    #testing of all functions
-    #_____________________________________________________________________________________
+    print(wordsentimentcalculation(['praiseworthy'], lexiconArray, hashtablelex))
 
 
 
 
     print('_____________________________________________________________________________    ')
 
-    csvreaderfulltext = load_fulltext("irma_fulltext.csv")
+
+
+    #todo:
+    #use calculatesentimentscorefortweet() on preprocessed full_text
+    #testing of all untested functions
+    #_____________________________________________________________________________________
+
+
+    csvreaderfulltextdata = load_fulltext("irma_fulltext.csv")
     #
-    # row_count = sum(1 for row in csvreaderfulltext)
-    # print(row_count)
+    csvreaderfulltext = csvreaderfulltextdata[0]
+
+    row_count = csvreaderfulltextdata[1]
+
+    print(row_count)
+
+    listoftweetsentimentscore = []
+    tweetwordarray = []
     for row in csvreaderfulltext:
-        print(row)
-        break
+        print(row[1])
+        tweetwordarray = preprocesstweettextforanalysis(row[1])
+        # print(tweetwordarray)
+        listoftweetsentimentscore.append([row[0],wordsentimentcalculation(tweetwordarray,lexiconArray,hashtablelex)])
+        # print(listoftweetsentimentscore)
+        # break   #uncomment this break line to only analyse 1 row of csvreaderfulltext
+
+
+    #open file to write sentiment score
+    writingfile = open("writtenfile001.txt", "w+")
+
+    #empty file before writing
+    writingfile.truncate()
+
+    #write tweet ids along with sentiment score
+    for k in listoftweetsentimentscore:
+        writingfile.write(str(k) + "\n")
 
     print('|||||||||||||||||||HHH||||||')
 

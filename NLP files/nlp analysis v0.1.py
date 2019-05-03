@@ -70,65 +70,33 @@ def readLexicon(lexfilename):
     return (lexiconArray)
 
 
-def createhashtable(lexiconArray):
-    #Function description: takes the array from readLexicon and create and return a hash table. The each entry in the
-    #                      hash table array is in the form of [word, index_number_for_the_word_in_readLexicon_array]
+def createdictionary(lexiconArray):
+    #Function description: takes the array from readLexicon and create and return a dictionary. The each entry in the
+    #                      dictionary is in the form of (word: index_number_for_the_word_in_readLexicon_array)
 
+    hashtablelex = {}
 
-
-    #create hash table, the first hashing function is python's hash() function
-    #in case of collisions, double probing is used where the same python's hash function is used but the input for the hash function has "jump appended to it
-    #the hash table is of size 20261, to be at approximately a load factor of 70% and 20261 us chosen because it is a prime numbeer
-    hashtablelex = []
-    hashtSize = 20261
-    for k in range(hashtSize):
-        hashtablelex.append([])
 
     currentindex = 0
     for k in lexiconArray:
-        addhashindex = hash(k[0]) % hashtSize
-        if hashtablelex[addhashindex] == []:
-            hashtablelex[addhashindex] = [k[0],currentindex]
-        else:
-            probingjump = hash(k[0] + "jump") % hashtSize
-            while True:
-                addhashindex = (addhashindex + probingjump) % hashtSize
-
-                if hashtablelex[addhashindex] == []:
-                    hashtablelex[addhashindex] = [k[0], currentindex]
-                    break
-
+        hashtablelex[k[0]] = currentindex
         currentindex += 1
+
 
     return hashtablelex
 
 
 def matchtohashtable(fullword,lexiconArray,hashtablelex):
-    #Function description: matches fullword to its resective word in lexiconArray, returns:
-    #                      index for the matched word withs its sentiments in lexiconArray if found,
+    #Function description: matches fullword to its respective word in lexiconArray, returns:
+    #                      the array in lexiconArray for the matched word withs its sentiments in lexiconArray if found,
     #                      None value if not found
 
-    hashtSize = len(hashtablelex)
-    checkinghashindex = hash(fullword)% hashtSize
-    probingjump = hash(fullword + "jump") % hashtSize
-
-
-    #if the data at the index is not [], check if it is in the table and return it if it is, None if it is not,
-    # if it is [], it means the word is not in the hash table so return None
-    if hashtablelex[checkinghashindex] != []:
-        if hashtablelex[checkinghashindex][0] == fullword:
-            return lexiconArray[hashtablelex[checkinghashindex][1]]
-        else:
-            while True:
-                checkinghashindex = (checkinghashindex + probingjump) % hashtSize
-
-                if hashtablelex[checkinghashindex] == []:
-                    return None;
-                else:
-                    if hashtablelex[checkinghashindex][0] == fullword:
-                        return lexiconArray[hashtablelex[checkinghashindex][1]]
-    else:
+    wordlexiconindex = hashtablelex.get(fullword)
+    if wordlexiconindex == None:
         return None
+    else:
+        return lexiconArray[wordlexiconindex]
+
 
 
 def wordsentimentcalculation(tweetwordarray, lexiconArray, hashtablelex):
@@ -195,6 +163,33 @@ def preprocesstweettextforanalysis(tweettext):
 
 
 
+def processandwritetofile(csvreaderfulltext,lexiconArray,hashtablelex):
+    tweetwordarray = []
+
+
+    #open file to write sentiment score
+    writingfile = open("writtenfile001.txt", "w+")
+    #empty file before writing
+    writingfile.truncate()
+
+    counter = 0
+    for row in csvreaderfulltext:
+
+        #for handling rows with less than 2 fields, all rows should have 2 rows
+        if len(row) != 2:
+            continue
+
+
+        tweetwordarray = preprocesstweettextforanalysis(row[1])
+        tweetsentimentscoredata = ([row[0],wordsentimentcalculation(tweetwordarray,lexiconArray,hashtablelex)])
+        writingfile.write(str(tweetsentimentscoredata) + "\n")
+
+        counter += 1
+
+        # print(row[1])
+        # print(tweetwordarray)
+        print(counter)
+
 
 
 
@@ -202,82 +197,53 @@ def preprocesstweettextforanalysis(tweettext):
 if __name__ == "__main__":
     #extra documentation:
     #lexiconArray should be of size 14182 unless a different lexicon is used
-    #the size of hash table at approximately 70% load factor created based on lexiconArray is 20261, and 20261 is chosen because it is a prime nuber
     #this program does not analyse emoticon for sentiments, but if desired, it can be added later by adding sentiment
     # scores into the emolex and modify the preprocesstweettextforanalysis to tokenize emoticons too
-
-    # import pandas as pd
-    # df = pd.read_csv("irma_cleaned.csv")
-    # # saved_column = df.column_name
-    #
-    # print("a")
-    # print(df["full_text"])
-    # print("a")
-    #
-
 
     print('_______________________START______________________________________________________    ')
 
     lexiconArray = readLexicon('lexicon.txt')
 
-    # print(lexiconArray)
+    # print('kkkkkk:   ', lexiconArray)
     # print(len(lexiconArray))
 
+    hashtablelex = createdictionary(lexiconArray)
 
 
-    hashtablelex = createhashtable(lexiconArray)
-
-
-
-    print(hashtablelex)
-    print(len(hashtablelex))
-
-    print(matchtohashtable('praiseworthy',lexiconArray,hashtablelex))
-    print(wordsentimentcalculation(['praiseworthy'], lexiconArray, hashtablelex))
-
-
-
-
-    print('_____________________________________________________________________________    ')
-
-
-
-    #todo:
-    #use calculatesentimentscorefortweet() on preprocessed full_text
-    #testing of all untested functions
-    #_____________________________________________________________________________________
-
-
-    csvreaderfulltextdata = load_fulltext("irma_fulltext.csv")
     #
-    csvreaderfulltext = csvreaderfulltextdata[0]
+    # print(hashtablelex)
+    # print(len(hashtablelex))
+    #
+    # print(matchtohashtable('praiseworthy',lexiconArray,hashtablelex))
+    # print(wordsentimentcalculation(['praiseworthy'], lexiconArray, hashtablelex))
+    #
+    # print('_____________________________________________________________________________    ')
+    #
+    #
 
+
+    csvreaderfulltextdata = load_fulltext("harvey_fulltext.csv")
+    csvreaderfulltext = csvreaderfulltextdata[0]
     row_count = csvreaderfulltextdata[1]
 
     print(row_count)
+    print('||||||prcoessing and writing|||||||||')
 
-    listoftweetsentimentscore = []
-    tweetwordarray = []
-    for row in csvreaderfulltext:
-        print(row[1])
-        tweetwordarray = preprocesstweettextforanalysis(row[1])
-        # print(tweetwordarray)
-        listoftweetsentimentscore.append([row[0],wordsentimentcalculation(tweetwordarray,lexiconArray,hashtablelex)])
-        # print(listoftweetsentimentscore)
-        # break   #uncomment this break line to only analyse 1 row of csvreaderfulltext
+    processandwritetofile(csvreaderfulltext, lexiconArray, hashtablelex)
+
+    print('|||||||||||||||||||PROGRAM END|||||||||')
+
+#todo:
+#testing
+#graphing
+
+#NOTE:
+#the sentiment analysis only analyse rows with 2 fields, there are at least 1 row with less than 2 field in both csv
+# for Harvey and Irma.
 
 
-    #open file to write sentiment score
-    writingfile = open("writtenfile001.txt", "w+")
 
-    #empty file before writing
-    writingfile.truncate()
 
-    #write tweet ids along with sentiment score
-    for k in listoftweetsentimentscore:
-        writingfile.write(str(k) + "\n")
-
-    print('|||||||||||||||||||HHH||||||')
 
 
 

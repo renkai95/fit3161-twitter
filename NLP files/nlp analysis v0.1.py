@@ -2,6 +2,8 @@ import csv
 import re
 import time
 import datetime as dt
+from ast import literal_eval
+import matplotlib.pyplot as plt
 
 # #ways to categorize
 #
@@ -223,6 +225,13 @@ def processandwritetofile(readerfulltext,lexiconArray,hashtablelex):
 
 
 def sumscore(previoussentimentscore,calculatedsentimentscore):
+    """
+    
+    :param previoussentimentscore: first list of integer scores to be summed, of n length.
+    :param calculatedsentimentscore: second list of integer scores to be summed, of n length.
+    :return: list of summed score, of n length. The summing is the sum of k-th integer of booth list, where k-th starts
+    from 0-th to n-th.
+    """
     #sum scores in two arrays
     newupdatedscore = []
     index = 0
@@ -295,117 +304,217 @@ def calculateelapsedtimeinhours(tweettimestamp, firsttweettimedata):
 
 
 
+def generatetimetosentimentscoredictionary(scorefile, timefile):
+    """
+
+    :param scorefile: string for the file name of the file containing the tweet's id_str and its respective array of 
+    sentiment scores
+    :param timefile: string for the file name of the file containing the tweet's id_str and its respective time elapse 
+    from the first tweet.
+    :return: dictionary in the form of {integer hours elapsed since the first tweet: the list of sum of all tweet's 
+    sentiment score for the integer hour appended by the number of tweeets for this hour}. Note that the value part
+    of the dictionary's key value pair is an array of length 10 + 1, where each score, 10 scores in total,
+    corresponds to the score in the order of ['anger', 'anticipation', 'disgust', 'fear', 'joy', 'negative',
+    'positive', 'sadness', 'surprise', 'trust'] + [number of tweets for this hour].
+    """
+
+    processedsentimentscorefile = open(scorefile, 'r')
+    processedtimefile = open(timefile, 'r')
+
+    timetoscoredictionary = {}
+
+    for sentimentscoreline in processedsentimentscorefile:
+        #set the second field of the file, which is the time elapsed in hours, to correspondingtime
+        correspondingtime = processedtimefile.readline().split(',', 1)
+        correspondingtime = int((correspondingtime[1]).replace(']', '').strip())
+
+        #set the second field of the file, which is the list of sentiment scores, to correspondingscore
+        correspondingscore = sentimentscoreline.split(',', 1)
+        correspondingscore = correspondingscore[1].replace(']]', ']').strip()
+        correspondingscore = literal_eval(correspondingscore)
+
+        scoreforthishourtime = timetoscoredictionary.get(correspondingtime) 
+
+        #if the elapsd time is not recorded in the dictionary, record it along with its corresponding score
+        if scoreforthishourtime == None:
+            timetoscoredictionary[correspondingtime] = (correspondingscore + [1])
+        #otherwise, update the matched time's correspondingscore
+        else:
+            timetoscoredictionary[correspondingtime] = sumscore((correspondingscore + [1]), scoreforthishourtime)
+
+
+    return timetoscoredictionary
+
+
 if __name__ == "__main__":
-    #extra documentation:
-    #lexiconArray should be of size 14182 unless a different lexicon is used
-    #this program does not analyse emoticon for sentiments, but if desired, it can be added later by adding sentiment
-    # scores into the emolex and modify the preprocesstweettextforanalysis to tokenize emoticons too
-
-    print('_______________________START______________________________________________________    ')
-
-    lexiconArray = readLexicon('lexicon.txt')
-
-    # print('kkkkkk:   ', lexiconArray)
-    # print(len(lexiconArray))
-
-    hashtablelex = createdictionary(lexiconArray)
-
-
-    #
-    # print(hashtablelex)
-    # print(len(hashtablelex))
-    #
-    # print(matchtohashtable('praiseworthy',lexiconArray,hashtablelex))
-    # print(wordsentimentcalculation(['praiseworthy'], lexiconArray, hashtablelex))
-    #
-    # print('_____________________________________________________________________________    ')
-    #
-    #
-
-
-    readerfulltext = open("irma_fulltext.csv", 'r')
-    readerfulltext.readline()
-
-    print('||||||prcoessing and writing|||||||||')
-
-    #create and initialise empty output for writing and reading, if it already exists, the file is emptied
-    writingfile = open("writtenfile001.txt", "w")
-    writingfile.close()
-
-    processandwritetofile(readerfulltext, lexiconArray, hashtablelex)
-
-    print('|||||||||||||||||||PROGRAM END|||||||||')
+#     #extra documentation:
+#     #lexiconArray should be of size 14182 unless a different lexicon is used
+#     #this program does not analyse emoticon for sentiments, but if desired, it can be added later by adding sentiment
+#     # scores into the emolex and modify the preprocesstweettextforanalysis to tokenize emoticons too
 #
-# #todo:
-# #testing
-# #graphing
-# #may want to remove computing "row_count", since its used only for printing
+#     print('_______________________START______________________________________________________    ')
 #
-# #NOTE:
-# #the sentiment analysis only analyse rows with 2 fields, there are at least 1 row with less than 2 field in both csv
-# # for Harvey and Irma, and some rows has 3 fields
-# #note that it may not be the same for data regarding tweet's created time, as the tweet time data may all have 2 fields
-# # so all field for time data are processed, unlike fulltext data where some row have less than 2 fields and are skipped
-# #the proram assumes the dataset is sorted chronologically, it msut be be sorted chronologically, by year, month, day,
-# # and hours. The program will still work even if it is not sorted by minutes and seconds, as long as it is sorted by
-# # year, month, day and hours.
+#     lexiconArray = readLexicon('lexicon.txt')
+#
+#     # print('kkkkkk:   ', lexiconArray)
+#     # print(len(lexiconArray))
+#
+#     hashtablelex = createdictionary(lexiconArray)
+#
+#
+#     #
+#     # print(hashtablelex)
+#     # print(len(hashtablelex))
+#     #
+#     # print(matchtohashtable('praiseworthy',lexiconArray,hashtablelex))
+#     # print(wordsentimentcalculation(['praiseworthy'], lexiconArray, hashtablelex))
+#     #
+#     # print('_____________________________________________________________________________    ')
+#     #
+#     #
+#
+#
+#     readerfulltext = open("irma_fulltext.csv", 'r')
+#     readerfulltext.readline()
+#
+#     print('||||||prcoessing and writing|||||||||')
+#
+#     #create and initialise empty output for writing and reading, if it already exists, the file is emptied
+#     writingfile = open("writtenfile001.txt", "w")
+#     writingfile.close()
+#
+#     processandwritetofile(readerfulltext, lexiconArray, hashtablelex)
+#
+#     print('|||||||||||||||||||PROGRAM END|||||||||')
+# #
+# # #todo:
+# # #testing
+# # #graphing
+# # #may want to remove computing "row_count", since its used only for printing
+# #
+# # #NOTE:
+# # #the sentiment analysis only analyse rows with 2 fields, there are at least 1 row with less than 2 field in both csv
+# # # for Harvey and Irma, and some rows has 3 fields
+# # #note that it may not be the same for data regarding tweet's created time, as the tweet time data may all have 2 fields
+# # # so all field for time data are processed, unlike fulltext data where some row have less than 2 fields and are skipped
+# # #the first tweet in both fulltext.csv and id_str_created_at.csv will be used to graph tweets, any tweets later
+# # # with the file that is created before the tweet will has 0 scored for time elapsed in hours. (Example: first
+# # # tweet is created at 3pm, any tweet read after the first tweet rom the file that is created before 3pm on the
+# # # same day and year will have 0 scored as time elapsed in hours.) Because of this, we recommend sorting the tweets
+# # # by time before using this program to perform sentiment analysis on it.
+#
+#
+#
+#
+#
+# #_____________________________________________________________________________________
+#
+#
+#
+#     csvreadertimedata = load_timedata("irma_idstr_createdat.csv")
+#     csvreadertime = csvreadertimedata[0]
+#     firsttweettimestampdata = csvreadertimedata[1]
+#
+#     calculateelapsedtimeandwritetofile(csvreadertime, firsttweettimestampdata)
+#
+#
+#
+#
+#
+#     #
+#     #
+#     #
+#     #
+#     # tweettime = 'Fri Sep 01 14:03:58 +0000 2022'
+#     #
+#     #
+#     # tweettimestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.strptime(tweettime,'%a %b %d %H:%M:%S +0000 %Y'))
+#     #
+#     # tweettimestamp = dt.datetime.strptime(tweettimestamp, '%Y-%m-%d %H:%M:%S')
+#     #
+#     #
+#     # secondtweettime = 'Fri Sep 01 11:03:57 +0000 2017'
+#     #
+#     # secondtweettimestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.strptime(secondtweettime,'%a %b %d %H:%M:%S +0000 %Y'))
+#     #
+#     # secondtweettimestamp = dt.datetime.strptime(secondtweettimestamp, '%Y-%m-%d %H:%M:%S')
+#     #
+#     #
+#     # print(tweettimestamp)
+#     # print(secondtweettimestamp)
+#     #
+#     # print(type(tweettimestamp), '.........',tweettimestamp.second,'....',max(tweettimestamp,secondtweettimestamp))
+#     #
+#     # print('difference: ', (tweettimestamp - secondtweettimestamp).days)
+#     #
+#     # print('difference: ', (secondtweettimestamp - secondtweettimestamp).days)
+#     # print('difference: ', (secondtweettimestamp - tweettimestamp).days)
+#     #
+#     # print('check: ', secondtweettimestamp == tweettimestamp)
+#     # print('check: ', secondtweettimestamp < tweettimestamp)
+#     # print('check: ', secondtweettimestamp > tweettimestamp)
+#     #
+#     # print(dt.datetime.now())
+#     #
+#     # print(type(dt.datetime.now()))
+#
+#
+
+    #note: this functions assume both input  files has same number of tweets and that
+    # each row in the first file has the same tweet_id as the corresponding row in the second file
+
+    timetosentimentdictionary = generatetimetosentimentscoredictionary('writtenfile001.txt', 'timewrittenfile001.txt')
+
+    plothours = []
+    plotscores = []
+    listofnumberoftweetsforthehour = []
+
+    #there are 10 type of sentiment sccore for each tweet
+    for k in range(10):
+        plotscores.append([])
+
+    for dkey,dvalue in timetosentimentdictionary.items():
+        plothours.append(dkey)
+        listofnumberoftweetsforthehour.append(dvalue[len(dvalue) - 1])
+        index = 0
+        for dsentimentvalue in dvalue[:-1]:
+            plotscores[index].append(dsentimentvalue)
+            index += 1
 
 
 
 
+    #plot graph of total sentiment score against time
+    graphone = plt.figure(1)
 
-#_____________________________________________________________________________________
+    print('aaa:', len(plothours), len(plotscores))
+    for k in range(10):
+        print(plothours)
+        print(len(plotscores[k]),plotscores[k])
+        plt.plot(plothours, plotscores[k])
 
-    #
-    #
-    # csvreadertimedata = load_timedata("irma_idstr_createdat.csv")
-    # csvreadertime = csvreadertimedata[0]
-    # firsttweettimestampdata = csvreadertimedata[1]
-    #
-    # calculateelapsedtimeandwritetofile(csvreadertime, firsttweettimestampdata)
-    #
+    plt.legend(['anger', 'anticipation', 'disgust', 'fear', 'joy', 'negative', 'positive', 'sadness', 'surprise', 'trust'], loc = 'upper left')
 
-
-
-
-    #
-    #
-    #
-    #
-    # tweettime = 'Fri Sep 01 14:03:58 +0000 2022'
-    #
-    #
-    # tweettimestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.strptime(tweettime,'%a %b %d %H:%M:%S +0000 %Y'))
-    #
-    # tweettimestamp = dt.datetime.strptime(tweettimestamp, '%Y-%m-%d %H:%M:%S')
-    #
-    #
-    # secondtweettime = 'Fri Sep 01 11:03:57 +0000 2017'
-    #
-    # secondtweettimestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.strptime(secondtweettime,'%a %b %d %H:%M:%S +0000 %Y'))
-    #
-    # secondtweettimestamp = dt.datetime.strptime(secondtweettimestamp, '%Y-%m-%d %H:%M:%S')
-    #
-    #
-    # print(tweettimestamp)
-    # print(secondtweettimestamp)
-    #
-    # print(type(tweettimestamp), '.........',tweettimestamp.second,'....',max(tweettimestamp,secondtweettimestamp))
-    #
-    # print('difference: ', (tweettimestamp - secondtweettimestamp).days)
-    #
-    # print('difference: ', (secondtweettimestamp - secondtweettimestamp).days)
-    # print('difference: ', (secondtweettimestamp - tweettimestamp).days)
-    #
-    # print('check: ', secondtweettimestamp == tweettimestamp)
-    # print('check: ', secondtweettimestamp < tweettimestamp)
-    # print('check: ', secondtweettimestamp > tweettimestamp)
-    #
-    # print(dt.datetime.now())
-    #
-    # print(type(dt.datetime.now()))
+    plt.show()
 
 
+    #plot graph of average sentiment score per tweet against time
+    graphtwo = plt.figure(2)
+    averagesentimentscorepertweet = []
+
+    avgindex = -1
+    for summedscore in plotscores:
+        averagesentimentscorepertweet.append([])
+        avgindex += 1
+        for k in summedscore:
+            averagesentimentscorepertweet[avgindex].append(k/listofnumberoftweetsforthehour[avgindex])
 
 
+    for k in range(10):
+        plt.plot(plothours, averagesentimentscorepertweet[k])
+    plt.legend(['anger', 'anticipation', 'disgust', 'fear', 'joy', 'negative', 'positive', 'sadness', 'surprise', 'trust'], loc = 'upper left')
 
+
+    plt.show()
+    print(len(plothours))
+    print(len(plotscores))

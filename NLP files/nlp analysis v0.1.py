@@ -1,5 +1,7 @@
 import csv
 import re
+import time
+import datetime as dt
 
 # #ways to categorize
 #
@@ -128,25 +130,6 @@ def updatescores(sentimentscores,resultt):
     return sentimentscores
 
 
-def load_fulltext(fulltextfile):
-
-
-    textfile = open(fulltextfile, 'r')
-
-    csvreaderfulltext = csv.reader(textfile)
-
-    #skip first line its csv because the line contains only row header
-    next(csvreaderfulltext, None)
-
-    #calculate number of rows in the csv and return pointer back to the top of the file
-    row_count = sum(1 for row in csvreaderfulltext)
-    textfile.seek(0)
-    next(csvreaderfulltext, None)
-
-
-
-    return [csvreaderfulltext, row_count]
-
 
 def preprocesstweettextforanalysis(tweettext):
     #Function description: Takes the tweet fulltext as inoput and returns an array of words in the fulltext, where
@@ -163,34 +146,152 @@ def preprocesstweettextforanalysis(tweettext):
 
 
 
-def processandwritetofile(csvreaderfulltext,lexiconArray,hashtablelex):
+def processandwritetofile(readerfulltext,lexiconArray,hashtablelex):
     tweetwordarray = []
+
+###########################################################################
+    lessthantwocounter = 0
+    morethantwocounter = 0
+    counter = 0
+###########################################################################
 
 
     #open file to write sentiment score
-    writingfile = open("writtenfile001.txt", "w+")
-    #empty file before writing
-    writingfile.truncate()
+    writingfile = open("writtenfile001.txt", "r+")
 
-    counter = 0
-    for row in csvreaderfulltext:
+    previouslinedata = []
 
-        #for handling rows with less than 2 fields, all rows should have 2 rows
-        if len(row) != 2:
+    for lines in readerfulltext:
+        fields = lines.split(',', 1)
+###########################################################################
+        if len(fields) > 2:
+            morethantwocounter += 1
+            print('333333number of fields: ', len(fields), 'row data: ', fields, 'counter', counter)
+        else:
+            if len(fields) < 2:
+                lessthantwocounter += 1
+
+                print('number of fields: ', len(fields), 'row data: ', fields, 'counter', counter)
+###########################################################################
+
+        #for cases where a tweet's full text covers more than 1 line in the csv file, in this case, update score of
+        #previous line, or when a tweet continues to a row with 2 fields that is not a new tweet
+
+        if (len(fields) == 1) or (not fields[0].isdigit()):
+            tweetwordarray = preprocesstweettextforanalysis(fields[0])
+            calculatedsentimentscore = wordsentimentcalculation(tweetwordarray, lexiconArray, hashtablelex)
+
+            previouslinetweetid = previouslinedata[0]
+            previoussentimentscore = previouslinedata[1]
+            newupdatedscore = sumscore(previoussentimentscore,calculatedsentimentscore)
+
+            writingfile = updatepreviouslinesentimentscore(newupdatedscore, previouslinetweetid, lastlinefileposition, writingfile)
+
+            previouslinedata[1] = newupdatedscore
+
             continue
 
 
-        tweetwordarray = preprocesstweettextforanalysis(row[1])
-        tweetsentimentscoredata = ([row[0],wordsentimentcalculation(tweetwordarray,lexiconArray,hashtablelex)])
+
+
+        #for handling rows with less than 2 fields, all rows should have 2 rows
+        if len(fields) != 2:
+            continue
+
+
+        tweetwordarray = preprocesstweettextforanalysis(fields[1])
+        calculatedsentimentscore = wordsentimentcalculation(tweetwordarray,lexiconArray,hashtablelex)
+        tweetsentimentscoredata = ([fields[0],calculatedsentimentscore])
+
+        lastlinefileposition = writingfile.tell()
         writingfile.write(str(tweetsentimentscoredata) + "\n")
 
+        previouslinedata = tweetsentimentscoredata
+
+##############################################################################
         counter += 1
 
-        # print(row[1])
-        # print(tweetwordarray)
-        print(counter)
+##############################################################################
+
+##############################################################################
+    print("lessthantwocounter: ", lessthantwocounter)
+    print("morethantwocounter: ", morethantwocounter)
+    print('counter: ,', counter)
+##############################################################################
+
+    return
 
 
+def sumscore(previoussentimentscore,calculatedsentimentscore):
+    #sum scores in two arrays
+    newupdatedscore = []
+    index = 0
+    for score in previoussentimentscore:
+        newupdatedscore += [score+calculatedsentimentscore[index]]
+        index += 1
+    return newupdatedscore
+
+
+def updatepreviouslinesentimentscore(newupdatedscore, previouslinetweetid, lastlinefileposition, writingfile):
+
+    print(writingfile.tell(), newupdatedscore, lastlinefileposition)
+    #move pointer to beginning of previous line to delete the line by truncating at the pointer
+    writingfile.seek(lastlinefileposition) #instead of writingfile.seek((writingfile.tell() - lastlinefileposition), 2)
+    writingfile.truncate()
+
+    #write the new uupdate sentiment score to the file
+    writingfile.write(str([previouslinetweetid, newupdatedscore]) + "\n")
+    return writingfile
+
+
+def load_timedata(timedatafilename):
+    timefile = open(timedatafilename, 'r')
+    csvreadertimedata = csv.reader(timefile)
+
+    #skip first line its csv because the line contains only row header
+    next(csvreadertimedata, None)
+
+    for row in csvreadertimedata:
+        firstrowtimedata = time.strftime('%Y-%m-%d %H:%M:%S', time.strptime(row[1],'%a %b %d %H:%M:%S +0000 %Y'))
+        firsttweettimestampdata = dt.datetime.strptime(firstrowtimedata, '%Y-%m-%d %H:%M:%S')
+        break
+    #move csvreader pointer to its first row
+    timefile.seek(0)
+    next(csvreadertimedata, None)
+
+
+
+    return [csvreadertimedata, firsttweettimestampdata]
+
+def calculateelapsedtimeandwritetofile(csvreadertimedata, firsttweettimedata):
+    # open file to write sentiment score
+    writingfile = open("timewrittenfile001.txt", "w+")
+    # empty file before writing
+    writingfile.truncate()
+
+    for row in csvreadertimedata:
+
+
+        tweettimestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.strptime(row[1],'%a %b %d %H:%M:%S +0000 %Y'))
+        tweettimestamp = dt.datetime.strptime(tweettimestamp, '%Y-%m-%d %H:%M:%S')
+
+        if tweettimestamp < firsttweettimedata:
+            elapsedtimeinhours = 0
+        else:
+            elapsedtime = tweettimestamp-firsttweettimedata
+            elapsedtimeinhours = calculateelapsedtimeinhours(tweettimestamp, firsttweettimedata)
+        tweetelapsedtimedata = [row[0], elapsedtimeinhours]
+
+        writingfile.write(str(tweetelapsedtimedata) + "\n")
+
+
+    return
+
+def calculateelapsedtimeinhours(tweettimestamp, firsttweettimedata):
+    #Function description: calculate time difference between tweettimestamp and firsttweettimedata, output is rounded
+    #                      down to integer in hours
+    timedifference = tweettimestamp - firsttweettimedata
+    return ((timedifference.days * 24) + (timedifference.seconds // 3600 ))#PUT FORMULA FOR COUNTING THE ELAPSED HOUR HERE
 
 
 
@@ -222,26 +323,87 @@ if __name__ == "__main__":
     #
 
 
-    csvreaderfulltextdata = load_fulltext("harvey_fulltext.csv")
-    csvreaderfulltext = csvreaderfulltextdata[0]
-    row_count = csvreaderfulltextdata[1]
+    readerfulltext = open("irma_fulltext.csv", 'r')
+    readerfulltext.readline()
 
-    print(row_count)
     print('||||||prcoessing and writing|||||||||')
 
-    processandwritetofile(csvreaderfulltext, lexiconArray, hashtablelex)
+    #create and initialise empty output for writing and reading, if it already exists, the file is emptied
+    writingfile = open("writtenfile001.txt", "w")
+    writingfile.close()
+
+    processandwritetofile(readerfulltext, lexiconArray, hashtablelex)
 
     print('|||||||||||||||||||PROGRAM END|||||||||')
+#
+# #todo:
+# #testing
+# #graphing
+# #may want to remove computing "row_count", since its used only for printing
+#
+# #NOTE:
+# #the sentiment analysis only analyse rows with 2 fields, there are at least 1 row with less than 2 field in both csv
+# # for Harvey and Irma, and some rows has 3 fields
+# #note that it may not be the same for data regarding tweet's created time, as the tweet time data may all have 2 fields
+# # so all field for time data are processed, unlike fulltext data where some row have less than 2 fields and are skipped
+# #the proram assumes the dataset is sorted chronologically, it msut be be sorted chronologically, by year, month, day,
+# # and hours. The program will still work even if it is not sorted by minutes and seconds, as long as it is sorted by
+# # year, month, day and hours.
 
-#todo:
-#testing
-#graphing
-
-#NOTE:
-#the sentiment analysis only analyse rows with 2 fields, there are at least 1 row with less than 2 field in both csv
-# for Harvey and Irma.
 
 
+
+
+#_____________________________________________________________________________________
+
+    #
+    #
+    # csvreadertimedata = load_timedata("irma_idstr_createdat.csv")
+    # csvreadertime = csvreadertimedata[0]
+    # firsttweettimestampdata = csvreadertimedata[1]
+    #
+    # calculateelapsedtimeandwritetofile(csvreadertime, firsttweettimestampdata)
+    #
+
+
+
+
+    #
+    #
+    #
+    #
+    # tweettime = 'Fri Sep 01 14:03:58 +0000 2022'
+    #
+    #
+    # tweettimestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.strptime(tweettime,'%a %b %d %H:%M:%S +0000 %Y'))
+    #
+    # tweettimestamp = dt.datetime.strptime(tweettimestamp, '%Y-%m-%d %H:%M:%S')
+    #
+    #
+    # secondtweettime = 'Fri Sep 01 11:03:57 +0000 2017'
+    #
+    # secondtweettimestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.strptime(secondtweettime,'%a %b %d %H:%M:%S +0000 %Y'))
+    #
+    # secondtweettimestamp = dt.datetime.strptime(secondtweettimestamp, '%Y-%m-%d %H:%M:%S')
+    #
+    #
+    # print(tweettimestamp)
+    # print(secondtweettimestamp)
+    #
+    # print(type(tweettimestamp), '.........',tweettimestamp.second,'....',max(tweettimestamp,secondtweettimestamp))
+    #
+    # print('difference: ', (tweettimestamp - secondtweettimestamp).days)
+    #
+    # print('difference: ', (secondtweettimestamp - secondtweettimestamp).days)
+    # print('difference: ', (secondtweettimestamp - tweettimestamp).days)
+    #
+    # print('check: ', secondtweettimestamp == tweettimestamp)
+    # print('check: ', secondtweettimestamp < tweettimestamp)
+    # print('check: ', secondtweettimestamp > tweettimestamp)
+    #
+    # print(dt.datetime.now())
+    #
+    # print(type(dt.datetime.now()))
 
 
 

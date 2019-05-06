@@ -5,40 +5,19 @@ import datetime as dt
 from ast import literal_eval
 import matplotlib.pyplot as plt
 
-# #ways to categorize
-#
-#
-#
-# f = open("irma_cleaned.csv", encoding="utf8");
-#
-# reader = csv.reader(f)
-#
-#
-#
-# if __name__ == "__main__":
-#
-#     for row in reader:
-#         print(row);
-#
-#
-#
-#
-# f.close();
-
-
-
 
 
 
 
 def readLexicon(lexfilename):
-    #Function description: Takes the lexicon text file as input and return an array. Note that the array follow the form of:
-    #                      [word followed by 1st to 10th sentiment in this order]:
-    #                      [word, anger, anticipation, disgust, fear, joy, negative, positive, sadness, surprise, trust]
-    #                      which means each array entry shows the 'word' followed by its 10 sentiments
+    """
 
-
-
+    :param lexfilename: string of name for the file containing the emolex lexicon
+    :return: list containing the processed data of the emolex lexicon. Each entry in the list takes the form of
+    [word followed by 1st to 10th sentiment in this order] which is
+    [word, anger, anticipation, disgust, fear, joy, negative, positive, sadness, surprise, trust]
+    which means each list entry shows the 'word' followed by its 10 sentiments.
+    """
     #initialize array for lexicon
     lexiconArray = []
 
@@ -49,9 +28,6 @@ def readLexicon(lexfilename):
     # for each 1st of 10 line read,
     #     for the 1st line: append the word and its sentiment value for the word for this line to lexiconArray
     #     otherwise: just append the respective sentiment value to its respective array in lexiconArray,
-    #NOTE: data in each array in lexiconArray is:
-    # [word followed by 1st to 10th sentiment in this order]:
-    # [word, anger, anticipation, disgust, fear, joy, negative, positive, sadness, surprise, trust]
     lexiconArrayIndex = -1
     resettingline = 10
     for line in lexicon:
@@ -75,8 +51,12 @@ def readLexicon(lexfilename):
 
 
 def createdictionary(lexiconArray):
-    #Function description: takes the array from readLexicon and create and return a dictionary. The each entry in the
-    #                      dictionary is in the form of (word: index_number_for_the_word_in_readLexicon_array)
+    """
+
+    :param lexiconArray: list contataining processed data of the Emolex lexicon
+    :return: dictionary created using lexiconArray, containing key-value pair of the form
+    of {word:index number for the word in read lexiconArray}
+    """
 
     hashtablelex = {}
 
@@ -91,6 +71,15 @@ def createdictionary(lexiconArray):
 
 
 def matchtohashtable(fullword,lexiconArray,hashtablelex):
+    """
+
+    :param fullword: string of the key to be searched in the dictionary hashtablelex
+    :param lexiconArray: list containing processed data of the Emolex lexicon
+    :param hashtablelex: dictionary created using lexiconArray, containing key-value pair of the form
+    of {word:index number for the word in read lexiconArray}
+    :return: if fullword is not found in hashtablelex, return None, otherwise return the list of the 10 sentiment
+    score for the matched fullword
+    """
     #Function description: matches fullword to its respective word in lexiconArray, returns:
     #                      the array in lexiconArray for the matched word withs its sentiments in lexiconArray if found,
     #                      None value if not found
@@ -104,9 +93,16 @@ def matchtohashtable(fullword,lexiconArray,hashtablelex):
 
 
 def wordsentimentcalculation(tweetwordarray, lexiconArray, hashtablelex):
+    """
+
+    :param tweetwordarray: list of words in the tweet
+    :param lexiconArray: list containing processed data of the Emolex lexicon
+    :param hashtablelex: dictionary created using lexiconArray, containing key-value pair of the form
+    of {word:index number for the word in read lexiconArray}
+    :return: list containing the the sum of sentiments scores for all words in tweetwordarray
+    """
     #ensure full_text has been preprocessed, so its form should be an array of words
     #this functions does not analyse emoticons
-
     sentimentscores = [0,0,0,0,0,0,0,0,0,0]
     for word in tweetwordarray:
         resultt = matchtohashtable(word, lexiconArray, hashtablelex)
@@ -117,6 +113,13 @@ def wordsentimentcalculation(tweetwordarray, lexiconArray, hashtablelex):
 
 
 def updatescores(sentimentscores,resultt):
+    """
+
+    :param sentimentscores: list containing the 10 sentiment scores
+    :param resultt: list containing the word for the sentiment score and the 10 sentiment scores
+    :return: list containing the sum of the 10 sentiment scores of sentimentscores and resultt
+    """
+
     #updates sentiment score using result from matching using hash table and word in tweet
     scoreindex = 0
     resultindexx = 0
@@ -134,6 +137,11 @@ def updatescores(sentimentscores,resultt):
 
 
 def preprocesstweettextforanalysis(tweettext):
+    """
+
+    :param tweettext: string of the tweet's fulltext
+    :return: string of tweettext's alphabets in lowercase. All non-alphabets are excluded.
+    """
     #Function description: Takes the tweet fulltext as inoput and returns an array of words in the fulltext, where
     #                      any non-lowercase-ASCII-letter are not included.
 
@@ -149,32 +157,27 @@ def preprocesstweettextforanalysis(tweettext):
 
 
 def processandwritetofile(readerfulltext,lexiconArray,hashtablelex):
+    """
+    This function is called to process the sentiment score of all Tweet's in readerfulltext. The calculated sentiment
+    score for each tweet is the written into "writtenfile001.txt" new line one by one as the processing takes place.
+    The time data file is set to write into a file named "timewrittenfile001.txt", so any file of the same name will
+    be erased before writing.
+
+    :param readerfulltext: opened file of the file for containing tweets' fulltext data
+    :param lexiconArray: list containing processed data of the Emolex lexicon
+    :param hashtablelex: dictionary created using lexiconArray, containing key-value pair of the form
+    of {word:index number for the word in read lexiconArray}
+    :return: None
+    """
     tweetwordarray = []
 
-###########################################################################
-    lessthantwocounter = 0
-    morethantwocounter = 0
-    counter = 0
-###########################################################################
-
-
     #open file to write sentiment score
-    writingfile = open("writtenfile001.txt", "r+")
+    writingfile = open("writtenfile001.txt", "w+")
 
     previouslinedata = []
 
     for lines in readerfulltext:
         fields = lines.split(',', 1)
-###########################################################################
-        if len(fields) > 2:
-            morethantwocounter += 1
-            print('333333number of fields: ', len(fields), 'row data: ', fields, 'counter', counter)
-        else:
-            if len(fields) < 2:
-                lessthantwocounter += 1
-
-                print('number of fields: ', len(fields), 'row data: ', fields, 'counter', counter)
-###########################################################################
 
         #for cases where a tweet's full text covers more than 1 line in the csv file, in this case, update score of
         #previous line, or when a tweet continues to a row with 2 fields that is not a new tweet
@@ -210,17 +213,6 @@ def processandwritetofile(readerfulltext,lexiconArray,hashtablelex):
 
         previouslinedata = tweetsentimentscoredata
 
-##############################################################################
-        counter += 1
-
-##############################################################################
-
-##############################################################################
-    print("lessthantwocounter: ", lessthantwocounter)
-    print("morethantwocounter: ", morethantwocounter)
-    print('counter: ,', counter)
-##############################################################################
-
     return
 
 
@@ -242,10 +234,20 @@ def sumscore(previoussentimentscore,calculatedsentimentscore):
 
 
 def updatepreviouslinesentimentscore(newupdatedscore, previouslinetweetid, lastlinefileposition, writingfile):
+    """
+    Update the tweet id sentiment score of the last tweet in writingfile by deleting the last line in writingfile and
+    then adding a new line containing [previouslinetweetid, newupdatedscore].
 
-    print(writingfile.tell(), newupdatedscore, lastlinefileposition)
+    :param newupdatedscore: list containing the sentiment score to be added to the file
+    :param previouslinetweetid: string of tweet id of tweet to be added into writingfile.
+    :param lastlinefileposition: the position of the beginning of the last line in writingfile. This can be usually
+    obtained using writingfile.tell() before writing a new line into writingfile
+    :param writingfile: the opened file for deletion of line and adding of new line of data
+    :return:
+    """
+
     #move pointer to beginning of previous line to delete the line by truncating at the pointer
-    writingfile.seek(lastlinefileposition) #instead of writingfile.seek((writingfile.tell() - lastlinefileposition), 2)
+    writingfile.seek(lastlinefileposition)
     writingfile.truncate()
 
     #write the new uupdate sentiment score to the file
@@ -254,6 +256,12 @@ def updatepreviouslinesentimentscore(newupdatedscore, previouslinetweetid, lastl
 
 
 def load_timedata(timedatafilename):
+    """
+
+    :param timedatafilename: string of name for the file containing time data for the Tweets
+    :return: list of size 2, containing [csvreader for the file containing time data for the Tweets, time stamp of
+    the tweet in the file's first line
+    """
     timefile = open(timedatafilename, 'r')
     csvreadertimedata = csv.reader(timefile)
 
@@ -273,6 +281,14 @@ def load_timedata(timedatafilename):
     return [csvreadertimedata, firsttweettimestampdata]
 
 def calculateelapsedtimeandwritetofile(csvreadertimedata, firsttweettimedata):
+    """
+    Process and prepare time data file for graphing tweet sentiment scores against time. The time data file is set
+    to write into a file named "timewrittenfile001.txt", so any file of the same name will be erased before writing.
+
+    :param csvreadertimedata: csvreader of the file containing time data for the Tweets
+    :param firsttweettimedata: time stamp of the tweet in the file's first line
+    :return: None
+    """
     # open file to write sentiment score
     writingfile = open("timewrittenfile001.txt", "w+")
     # empty file before writing
@@ -287,7 +303,6 @@ def calculateelapsedtimeandwritetofile(csvreadertimedata, firsttweettimedata):
         if tweettimestamp < firsttweettimedata:
             elapsedtimeinhours = 0
         else:
-            elapsedtime = tweettimestamp-firsttweettimedata
             elapsedtimeinhours = calculateelapsedtimeinhours(tweettimestamp, firsttweettimedata)
         tweetelapsedtimedata = [row[0], elapsedtimeinhours]
 
@@ -297,8 +312,12 @@ def calculateelapsedtimeandwritetofile(csvreadertimedata, firsttweettimedata):
     return
 
 def calculateelapsedtimeinhours(tweettimestamp, firsttweettimedata):
-    #Function description: calculate time difference between tweettimestamp and firsttweettimedata, output is rounded
-    #                      down to integer in hours
+    """
+
+    :param tweettimestamp: time stamp of tweet's creation time
+    :param firsttweettimedata: time stamp of first tweet's creation time
+    :return: Elapsed hours in integer of tweet's creation time since the first tweet, the returned hour is rounded down.
+    """
     timedifference = tweettimestamp - firsttweettimedata
     return ((timedifference.days * 24) + (timedifference.seconds // 3600 ))#PUT FORMULA FOR COUNTING THE ELAPSED HOUR HERE
 
@@ -308,9 +327,9 @@ def generatetimetosentimentscoredictionary(scorefile, timefile):
     """
 
     :param scorefile: string for the file name of the file containing the tweet's id_str and its respective array of 
-    sentiment scores
+    sentiment scores, with the same number of lines as timefile
     :param timefile: string for the file name of the file containing the tweet's id_str and its respective time elapse 
-    from the first tweet.
+    from the first tweet, with the same number of lines as timefile
     :return: dictionary in the form of {integer hours elapsed since the first tweet: the list of sum of all tweet's 
     sentiment score for the integer hour appended by the number of tweeets for this hour}. Note that the value part
     of the dictionary's key value pair is an array of length 10 + 1, where each score, 10 scores in total,
@@ -345,126 +364,15 @@ def generatetimetosentimentscoredictionary(scorefile, timefile):
 
     return timetoscoredictionary
 
+def plotgraphwithtimeandsentimentdictionary(timetosentimentdictionary):
+    """
+    Plot two graphs, first graph is a graph of total Tweets' sentiment scores against time, the second is a graph
+    of average Tweets' sentiment scores against time
 
-if __name__ == "__main__":
-#     #extra documentation:
-#     #lexiconArray should be of size 14182 unless a different lexicon is used
-#     #this program does not analyse emoticon for sentiments, but if desired, it can be added later by adding sentiment
-#     # scores into the emolex and modify the preprocesstweettextforanalysis to tokenize emoticons too
-#
-#     print('_______________________START______________________________________________________    ')
-#
-#     lexiconArray = readLexicon('lexicon.txt')
-#
-#     # print('kkkkkk:   ', lexiconArray)
-#     # print(len(lexiconArray))
-#
-#     hashtablelex = createdictionary(lexiconArray)
-#
-#
-#     #
-#     # print(hashtablelex)
-#     # print(len(hashtablelex))
-#     #
-#     # print(matchtohashtable('praiseworthy',lexiconArray,hashtablelex))
-#     # print(wordsentimentcalculation(['praiseworthy'], lexiconArray, hashtablelex))
-#     #
-#     # print('_____________________________________________________________________________    ')
-#     #
-#     #
-#
-#
-#     readerfulltext = open("irma_fulltext.csv", 'r')
-#     readerfulltext.readline()
-#
-#     print('||||||prcoessing and writing|||||||||')
-#
-#     #create and initialise empty output for writing and reading, if it already exists, the file is emptied
-#     writingfile = open("writtenfile001.txt", "w")
-#     writingfile.close()
-#
-#     processandwritetofile(readerfulltext, lexiconArray, hashtablelex)
-#
-#     print('|||||||||||||||||||PROGRAM END|||||||||')
-# #
-# # #todo:
-# # #testing
-# # #graphing
-# # #may want to remove computing "row_count", since its used only for printing
-# #
-# # #NOTE:
-# # #the sentiment analysis only analyse rows with 2 fields, there are at least 1 row with less than 2 field in both csv
-# # # for Harvey and Irma, and some rows has 3 fields
-# # #note that it may not be the same for data regarding tweet's created time, as the tweet time data may all have 2 fields
-# # # so all field for time data are processed, unlike fulltext data where some row have less than 2 fields and are skipped
-# # #the first tweet in both fulltext.csv and id_str_created_at.csv will be used to graph tweets, any tweets later
-# # # with the file that is created before the tweet will has 0 scored for time elapsed in hours. (Example: first
-# # # tweet is created at 3pm, any tweet read after the first tweet rom the file that is created before 3pm on the
-# # # same day and year will have 0 scored as time elapsed in hours.) Because of this, we recommend sorting the tweets
-# # # by time before using this program to perform sentiment analysis on it.
-#
-#
-#
-#
-#
-# #_____________________________________________________________________________________
-#
-#
-#
-#     csvreadertimedata = load_timedata("irma_idstr_createdat.csv")
-#     csvreadertime = csvreadertimedata[0]
-#     firsttweettimestampdata = csvreadertimedata[1]
-#
-#     calculateelapsedtimeandwritetofile(csvreadertime, firsttweettimestampdata)
-#
-#
-#
-#
-#
-#     #
-#     #
-#     #
-#     #
-#     # tweettime = 'Fri Sep 01 14:03:58 +0000 2022'
-#     #
-#     #
-#     # tweettimestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.strptime(tweettime,'%a %b %d %H:%M:%S +0000 %Y'))
-#     #
-#     # tweettimestamp = dt.datetime.strptime(tweettimestamp, '%Y-%m-%d %H:%M:%S')
-#     #
-#     #
-#     # secondtweettime = 'Fri Sep 01 11:03:57 +0000 2017'
-#     #
-#     # secondtweettimestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.strptime(secondtweettime,'%a %b %d %H:%M:%S +0000 %Y'))
-#     #
-#     # secondtweettimestamp = dt.datetime.strptime(secondtweettimestamp, '%Y-%m-%d %H:%M:%S')
-#     #
-#     #
-#     # print(tweettimestamp)
-#     # print(secondtweettimestamp)
-#     #
-#     # print(type(tweettimestamp), '.........',tweettimestamp.second,'....',max(tweettimestamp,secondtweettimestamp))
-#     #
-#     # print('difference: ', (tweettimestamp - secondtweettimestamp).days)
-#     #
-#     # print('difference: ', (secondtweettimestamp - secondtweettimestamp).days)
-#     # print('difference: ', (secondtweettimestamp - tweettimestamp).days)
-#     #
-#     # print('check: ', secondtweettimestamp == tweettimestamp)
-#     # print('check: ', secondtweettimestamp < tweettimestamp)
-#     # print('check: ', secondtweettimestamp > tweettimestamp)
-#     #
-#     # print(dt.datetime.now())
-#     #
-#     # print(type(dt.datetime.now()))
-#
-#
-
-    #note: this functions assume both input  files has same number of tweets and that
-    # each row in the first file has the same tweet_id as the corresponding row in the second file
-
-    timetosentimentdictionary = generatetimetosentimentscoredictionary('writtenfile001.txt', 'timewrittenfile001.txt')
-
+    :param timetosentimentdictionary: the dictionary with key-pair in the form of {time elapsed in hour: list, of
+    size 11, containing the 10 sentiment appended by 1 value for the number of tweets in the hour}
+    :return: None
+    """
     plothours = []
     plotscores = []
     listofnumberoftweetsforthehour = []
@@ -481,22 +389,17 @@ if __name__ == "__main__":
             plotscores[index].append(dsentimentvalue)
             index += 1
 
-
-
-
     #plot graph of total sentiment score against time
     graphone = plt.figure(1)
-
-    print('aaa:', len(plothours), len(plotscores))
     for k in range(10):
-        print(plothours)
-        print(len(plotscores[k]),plotscores[k])
         plt.plot(plothours, plotscores[k])
-
-    plt.legend(['anger', 'anticipation', 'disgust', 'fear', 'joy', 'negative', 'positive', 'sadness', 'surprise', 'trust'], loc = 'upper left')
+    plt.title("Total Tweets' sentiment scores over time")
+    plt.xlabel('Hours elapsed since first Tweet')
+    plt.ylabel('Sentiment score')
+    plt.legend(['anger', 'anticipation', 'disgust', 'fear', 'joy', 'negative', 'positive', 'sadness', 'surprise',
+                'trust'], loc = 'upper left', prop={'size': 6})
 
     plt.show()
-
 
     #plot graph of average sentiment score per tweet against time
     graphtwo = plt.figure(2)
@@ -509,12 +412,76 @@ if __name__ == "__main__":
         for k in summedscore:
             averagesentimentscorepertweet[avgindex].append(k/listofnumberoftweetsforthehour[avgindex])
 
-
     for k in range(10):
         plt.plot(plothours, averagesentimentscorepertweet[k])
-    plt.legend(['anger', 'anticipation', 'disgust', 'fear', 'joy', 'negative', 'positive', 'sadness', 'surprise', 'trust'], loc = 'upper left')
-
+    plt.title("Average Tweet sentiment scores over time")
+    plt.xlabel('Hours elapsed since first Tweet')
+    plt.ylabel('Sentiment score')
+    plt.legend(['anger', 'anticipation', 'disgust', 'fear', 'joy', 'negative', 'positive', 'sadness', 'surprise',
+                'trust'], loc = 'upper left', prop={'size': 6})
 
     plt.show()
-    print(len(plothours))
-    print(len(plotscores))
+
+    return
+
+
+if __name__ == "__main__":
+    #extra documentation:
+    #lexiconArray should be of size 14182 unless a different lexicon is used
+    #this program does not analyse emoticon for sentiments, but if desired, it can be added later by adding sentiment
+    # scores into the emolex and modify the preprocesstweettextforanalysis to tokenize emoticons too
+
+    print('_______________________START______________________________________________________    ')
+
+    lexiconArray = readLexicon('lexicon.txt')
+
+    hashtablelex = createdictionary(lexiconArray)
+
+    print('________________________FINISHED PROCESSING LEXICON_________________________________________________    ')
+
+    readerfulltext = open("harvey_fulltext.csv", 'r')
+    readerfulltext.readline()
+
+    print('||||||prrocessing and writing|||||||||')
+
+    #create and initialise empty output for writing and reading, if it already exists, the file is emptied
+    writingfile = open("writtenfile001.txt", "w")
+    writingfile.close()
+    processandwritetofile(readerfulltext, lexiconArray, hashtablelex)
+
+    print('|||||||||||||||||||FINISHED GENERATING AND WRITING TWEET SCORES|||||||||')
+
+    csvreadertimedata = load_timedata("harvey_idstr_createdat.csv")
+    csvreadertime = csvreadertimedata[0]
+    firsttweettimestampdata = csvreadertimedata[1]
+    calculateelapsedtimeandwritetofile(csvreadertime, firsttweettimestampdata)
+
+
+    print('|||||||||||||||||||FINISHED PROCESSING TIME FILE|||||||||')
+
+
+    timetosentimentdictionary = generatetimetosentimentscoredictionary('writtenfile001.txt', 'timewrittenfile001.txt')
+
+    plotgraphwithtimeandsentimentdictionary(timetosentimentdictionary)
+
+
+    print('|||||||||||||||||||PROGRAM END|||||||||')
+
+#NOTE:
+#data in each array in lexiconArray is:
+# [word followed by 1st to 10th sentiment in this order]:
+# [word, anger, anticipation, disgust, fear, joy, negative, positive, sadness, surprise, trust]
+#the sentiment analysis only analyse rows with 2 fields, there are at least 1 row with less than 2 field in both csv
+# for Harvey and Irma, and some rows has 3 fields
+#note that it may not be the same for data regarding tweet's created time, as the tweet time data may all have 2 fields
+# so all field for time data are processed, unlike fulltext data where some row have less than 2 fields and are skipped
+#the first tweet in both fulltext.csv and id_str_created_at.csv will be used to graph tweets, any tweets later
+# with the file that is created before the tweet will has 0 scored for time elapsed in hours. (Example: first
+# tweet is created at 3pm, any tweet read after the first tweet rom the file that is created before 3pm on the
+# same day and year will have 0 scored as time elapsed in hours.) Because of this, we recommend sorting the tweets
+# by time before using this program to perform sentiment analysis on it.
+#this program needs matplotlib installed in python for it to run and do graphing
+
+
+#todo:
+#Everything works and are documented and tested. If theres something to do, its probably cleaning code for better look since its messy

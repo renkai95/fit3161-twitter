@@ -18,7 +18,9 @@ def traverse(g,node,harvey_id):
         g.add_node(harvey_id[node['id']])
         g.add_edge(harvey_id[child['id']],harvey_id[node['id']])
         traverse(g,child,harvey_id)
-
+#def nodeCount(node):
+#    try:
+        
 cnx = mysql.connector.connect(user='root', password='password',
                               host='127.0.0.1',
                               database='twitter')
@@ -97,6 +99,7 @@ with open('../DATA/logfile.txt','w') as logFile:
     for row in forest:
         if len(row)>1:
             pprint.pprint(row, logFile)
+            
 
 '''
 fig_size = plt.rcParams["figure.figsize"]

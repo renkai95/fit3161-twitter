@@ -5,10 +5,19 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
+import sys
 
 
 def traverse(g,node,harvey_id):
-    #g.add_node(node['id'])
+    '''
+    Recursive traversal of a python reply tree dict
+    :param g: networkx graph object
+    :param node: Current node name
+    :param harvey_id: dict of twitter id_str
+    Returns: Nothing
+    Side effects: Adds node to graph if there exists a reply, calls itself recursively if there is a child node
+    
+    '''
     try:
         node['id_children']
     except KeyError:
@@ -18,8 +27,7 @@ def traverse(g,node,harvey_id):
         g.add_node(harvey_id[node['id']])
         g.add_edge(harvey_id[child['id']],harvey_id[node['id']])
         traverse(g,child,harvey_id)
-#def nodeCount(node):
-#    try:
+
         
 cnx = mysql.connector.connect(user='root', password='password',
                               host='127.0.0.1',
@@ -35,6 +43,7 @@ font = {'family' : 'normal',
         'size'   : 1}
 
 plt.rc('font', **font)
+
 with open('../DATA/harvey_ids.csv') as inputFile:
     for row in inputFile:
         harvey_id[row.rstrip()]=row.rstrip()
@@ -58,29 +67,18 @@ for row in range(len(replied_to)):
         replied_inlist[y]
     except KeyError:
         replied_to.append((y,y))
-    
-#print(replied_to)
 nodes = {}
 for i in harvey_id:
-    #print(i)
     nodes[i] = { 'id': i }
-#print(nodes)
-# pass 2: create trees and parent-child relations
 forest = []
 for i in replied_to:
-    #print(forest)
     id, parent_id = i
     node = nodes[id]
-    #print(node)
-    # either make the node a new tree or link it to its parent
     if id == parent_id:
-        # start a new tree in the forest
         forest.append(node)
     else:
-        # add new_node as child to parent
         parent = nodes[parent_id]
         if not 'id_children' in parent:
-            # ensure parent has a 'children' field
             parent['id_children'] = []
         children = parent['id_children']
         children.append(node)
@@ -90,7 +88,6 @@ for row in forest:
     except KeyError:
         forest.remove(row)
 forest.sort(key=lambda x:len(x["id_children"]),reverse=1)
-
 forest = list({v['id']:v for v in forest}.values())
 print(len(forest))
 print(forest.count(forest[0]))
@@ -112,21 +109,9 @@ for row in range(len(forest)) :
     #print(row)
     g = nx.Graph()
     traverse(g,forest[row],harvey_id)
-    #print(g)
-    '''
-    while test == 1:
-        try:
-            forest[row]['id_children']
-        except KeyError:
-            test = 0
-        g.add_node(harvey_id[forest[row]['id']])
-        for child in forest[row]['id_children']:
-            g.add_node(harvey_id[child['id']])
-            g.add_edge(harvey_id[forest[row]['id']],harvey_id[child['id']])
-        test=0
-    '''
+
     d=dict(g.degree)
-    nx.draw_networkx(g, pos = nx.fruchterman_reingold_layout(g),node_size=[v * 6 for v in d.values()],font_size=1,width =0.08)
+    nx.draw_networkx(g, pos = nx.fruchterman_reingold_layout(g),node_size=[v * 2 for v in d.values()],font_size=1,width =0.08)
     plt.savefig('../DATA/graph'+str(row)+'.png' ,dpi = 1200)
     print(row)
     g.clear()
@@ -134,3 +119,11 @@ for row in range(len(forest)) :
 
 cnx.close()
 
+if __name__ == "__main__":
+    '''
+    Usage: python build-tree.py <path to file of ids> <path to file of replies>
+
+    '''
+    idfile = sys.argv[1]
+    replyfile = sys.argv[2]
+    

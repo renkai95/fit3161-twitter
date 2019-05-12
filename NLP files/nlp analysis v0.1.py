@@ -366,7 +366,7 @@ def generatetimetosentimentscoredictionary(scorefile, timefile):
 
 def plotgraphwithtimeandsentimentdictionary(timetosentimentdictionary):
     """
-    Plot two graphs, first graph is a graph of total Tweets' sentiment scores against time, the second is a graph
+    Plot two graphs, first graph is a graph of      total Tweets' sentiment scores against time, the second is a graph
     of average Tweets' sentiment scores against time
 
     :param timetosentimentdictionary: the dictionary with key-pair in the form of {time elapsed in hour: list, of
@@ -424,6 +424,58 @@ def plotgraphwithtimeandsentimentdictionary(timetosentimentdictionary):
 
     return
 
+def categorizationhistogram(scorefile):
+    """
+    Categorize each tweet based on their maximum sentiment score, if the max score is 0, it is categorized as neutral,
+    otherwise if there are one or more sentiment values that matches the maximum score, the tweet is categorized
+    based on the one or more categorized values. This means that a tweet will be categorized as neutral if its max
+    score is 0 and can have 1 or more categorization otherwise because there can be more than 1 sentiment score
+    type that matches the max score.
+
+    :param scorefile: string for the file name of the file containing the tweet's id_str and its respective array of
+    sentiment scores
+    :return: None
+    """
+
+
+    tweetscores = open(scorefile, 'r')
+
+    # sentiment type reference for listforcategorization: [anger, anticipation, disgust, fear, joy, negative,
+    # positive, sadness, surprise, trust, neutral]
+    listforcategorization = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+    for scoreline in tweetscores:
+
+        # set the second field of the file, which is the list of sentiment scores, to correspondingscore
+        correspondingscore = scoreline.split(',', 1)
+        correspondingscore = correspondingscore[1].replace(']]', ']').strip()
+        correspondingscore = literal_eval(correspondingscore)
+
+
+        highestscore = max(correspondingscore)
+
+        #if max score is 0, categorize as neutral
+        if highestscore == 0:
+            listforcategorization[10] += 1
+            continue
+
+        #if the max score is not 0, categorize the tweet based on the sentiment value type that matches the highest
+        # score. Note that more than 1 score type can match so the tweet can have more than 1 categorization in
+        # this case
+        scoreindex = 0
+        for sentimentscore in correspondingscore:
+            if sentimentscore == highestscore:
+                listforcategorization[scoreindex] += 1
+            scoreindex += 1
+
+    #plot the histogram
+    plt.bar(['anger', 'anticipation', 'disgust', 'fear', 'joy', 'negative', 'positive', 'sadness', 'surprise',
+             'trust', 'neutral'], height=listforcategorization)
+    plt.xlabel('Sentiment Type')
+    plt.ylabel('Number of tweets')
+    plt.title('Categorized Tweets')
+    plt.show()
+    return
 
 if __name__ == "__main__":
     #extra documentation:
@@ -465,7 +517,14 @@ if __name__ == "__main__":
     plotgraphwithtimeandsentimentdictionary(timetosentimentdictionary)
 
 
+    print('|||||||||||||||||||FINISHED GENERATING TIME TO SCORE GRAPH|||||||||')
+
+    categorizationhistogram('writtenfile001.txt')
+
+
     print('|||||||||||||||||||PROGRAM END|||||||||')
+
+
 
 #NOTE:
 #data in each array in lexiconArray is:
@@ -484,4 +543,14 @@ if __name__ == "__main__":
 
 
 #todo:
-#Everything works and are documented and tested. If theres something to do, its probably cleaning code for better look since its messy
+#add pre conditions and post conditions
+#unit testing
+#understand what to do for ML task
+#Everything works and are documented and tested. If theres something to do, its probably cleaning code for better
+# look since its messy. The codings can also be edited to be more efficient.
+
+
+
+
+
+

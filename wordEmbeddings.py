@@ -9,15 +9,15 @@ import sys
 import os
 import sys
 import re
-import gensim
 import string
-
+import gensim.test.utils
+import gensim.models
 def makeQuery(cursor,sentences):
     cursor.execute("SELECT full_text FROM harvey_cleaned")
     myresult = cursor.fetchall()
     for k in myresult:
-        x,y = k
-        x = re.sub('['+string.punctuation+']', '', x).split() 
+        x= k
+        x = re.sub('['+string.punctuation+']', '', str(x)).split() 
         sentences.append(x)
 if __name__ == "__main__":
     sentences = []
@@ -27,8 +27,11 @@ if __name__ == "__main__":
 
     cursor = cnx.cursor()
     makeQuery(cursor,sentences)
-    
-
-
+    model = gensim.models.Word2Vec(sentences, min_count=1)
+    print(model)
+    model.save('model.bin')
+    # load model
+    new_model = gensim.models.Word2Vec.load('model.bin')
+    print(new_model)
 
     cnx.close()

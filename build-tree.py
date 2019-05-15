@@ -154,12 +154,14 @@ if __name__ == "__main__":
     '''
     idFile = sys.argv[1]
     replyFile = sys.argv[2]
-
     cnx = mysql.connector.connect(user='root', password='password',
                               host='127.0.0.1',
                               database='twitter')
 
     cursor = cnx.cursor()
+    #cursor.execute("SELECT * FROM harvey_cleaned")
+    #myresult = cursor.fetchone()
+    #print(myresult)
     tweet_ids,replied_inlist,replied_to=readFile(idFile,replyFile)
     trimTerminators(replied_to,replied_inlist)
     forest = buildReplyTree(replied_to,tweet_ids)

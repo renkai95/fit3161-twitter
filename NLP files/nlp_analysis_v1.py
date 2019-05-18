@@ -486,33 +486,33 @@ if __name__ == "__main__":
     fulltextdatafilename = "harvey_fulltext.csv"
     tweetidcreatedatfilename = "harvey_idstr_createdat.csv"
     lexiconfilename = 'lexicon.txt'
-    #
-    # lexiconArray = readLexicon(lexiconfilename)
-    # hashtablelex = createdictionary(lexiconArray)
-    #
-    # print('________________________FINISHED PROCESSING LEXICON_________________________________________________    ')
-    #
-    # readerfulltext = open(fulltextdatafilename, 'r')
-    #
-    # print('||||||prrocessing and writing|||||||||')
-    #
-    # #create and initialise empty output for writing and reading, if it already exists, the file is emptied
-    # writingfile = open(tweetscoreoutputfilename, "w")
-    # writingfile.close()
-    # processandwritetofile(tweetscoreoutputfilename, readerfulltext, lexiconArray, hashtablelex)
-    #
-    # print('|||||||||||||||||||FINISHED GENERATING AND WRITING TWEET SCORES|||||||||')
-    #
-    # csvreadertimedata = load_timedata(tweetidcreatedatfilename)
-    # csvreadertime = csvreadertimedata[0]
-    # firsttweettimestampdata = csvreadertimedata[1]
-    # calculateelapsedtimeandwritetofile(tweettimeoutputfilename, csvreadertime, firsttweettimestampdata)
-    #
-    #
-    # print('|||||||||||||||||||FINISHED PROCESSING TIME FILE|||||||||')
-    #
-    # timetosentimentdictionary = generatetimetosentimentscoredictionary(tweetscoreoutputfilename, tweettimeoutputfilename)
-    # plotgraphwithtimeandsentimentdictionary(timetosentimentdictionary)
+
+    lexiconArray = readLexicon(lexiconfilename)
+    hashtablelex = createdictionary(lexiconArray)
+
+    print('________________________FINISHED PROCESSING LEXICON_________________________________________________    ')
+
+    readerfulltext = open(fulltextdatafilename, 'r')
+
+    print('||||||prrocessing and writing|||||||||')
+
+    #create and initialise empty output for writing and reading, if it already exists, the file is emptied
+    writingfile = open(tweetscoreoutputfilename, "w")
+    writingfile.close()
+    processandwritetofile(tweetscoreoutputfilename, readerfulltext, lexiconArray, hashtablelex)
+
+    print('|||||||||||||||||||FINISHED GENERATING AND WRITING TWEET SCORES|||||||||')
+
+    csvreadertimedata = load_timedata(tweetidcreatedatfilename)
+    csvreadertime = csvreadertimedata[0]
+    firsttweettimestampdata = csvreadertimedata[1]
+    calculateelapsedtimeandwritetofile(tweettimeoutputfilename, csvreadertime, firsttweettimestampdata)
+
+
+    print('|||||||||||||||||||FINISHED PROCESSING TIME FILE|||||||||')
+
+    timetosentimentdictionary = generatetimetosentimentscoredictionary(tweetscoreoutputfilename, tweettimeoutputfilename)
+    plotgraphwithtimeandsentimentdictionary(timetosentimentdictionary)
 
     print('|||||||||||||||||||FINISHED GENERATING TIME TO SCORE GRAPH|||||||||')
 

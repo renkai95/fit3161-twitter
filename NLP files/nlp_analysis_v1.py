@@ -22,7 +22,7 @@ def readLexicon(lexfilename):
     lexiconArray = []
 
     # open lexicon text for reading and skip first line since its empty
-    lexicon = open(lexfilename)
+    lexicon = open(lexfilename,  encoding='utf-8')
     next(lexicon)
 
     # for each 1st of 10 line read,
@@ -171,7 +171,7 @@ def processandwritetofile(tweetscoreoutputfilename, readerfulltext,lexiconArray,
     tweetwordarray = []
 
     #open file to write sentiment score
-    writingfile = open(tweetscoreoutputfilename, "w+")
+    writingfile = open(tweetscoreoutputfilename, "w+", encoding='utf-8')
 
     previouslinedata = []
 
@@ -259,7 +259,7 @@ def load_timedata(timedatafilename):
     :return: list of size 2, containing [csvreader for the file containing time data for the Tweets, time stamp of
     the tweet in the file's first line
     """
-    timefile = open(timedatafilename, 'r')
+    timefile = open(timedatafilename, 'r',  encoding='utf-8')
     csvreadertimedata = csv.reader(timefile)
 
     #skip first line its csv because the line contains only row header
@@ -289,7 +289,7 @@ def calculateelapsedtimeandwritetofile(tweettimeoutputdata, csvreadertimedata, f
     :return: None
     """
     # open file to write sentiment score
-    writingfile = open(tweettimeoutputdata, "w+")
+    writingfile = open(tweettimeoutputdata, "w+",  encoding='utf-8')
     # empty file before writing
     writingfile.truncate()
 
@@ -336,8 +336,8 @@ def generatetimetosentimentscoredictionary(scorefile, timefile):
     'positive', 'sadness', 'surprise', 'trust'] + [number of tweets for this hour].
     """
 
-    processedsentimentscorefile = open(scorefile, 'r')
-    processedtimefile = open(timefile, 'r')
+    processedsentimentscorefile = open(scorefile, 'r',  encoding='utf-8')
+    processedtimefile = open(timefile, 'r', encoding='utf-8')
 
     timetoscoredictionary = {}
 
@@ -437,7 +437,7 @@ def categorizationhistogram(scorefile):
     """
 
 
-    tweetscores = open(scorefile, 'r')
+    tweetscores = open(scorefile, 'r',  encoding='utf-8')
 
     # sentiment type reference for listforcategorization: [anger, anticipation, disgust, fear, joy, negative,
     # positive, sadness, surprise, trust, neutral]
@@ -487,17 +487,18 @@ if __name__ == "__main__":
     tweetidcreatedatfilename = "harvey_idstr_createdat.csv"
     lexiconfilename = 'lexicon.txt'
 
+
     lexiconArray = readLexicon(lexiconfilename)
     hashtablelex = createdictionary(lexiconArray)
 
     print('________________________FINISHED PROCESSING LEXICON_________________________________________________    ')
 
-    readerfulltext = open(fulltextdatafilename, 'r')
+    readerfulltext = open(fulltextdatafilename, 'r', encoding='utf-8')
 
     print('||||||prrocessing and writing|||||||||')
 
     #create and initialise empty output for writing and reading, if it already exists, the file is emptied
-    writingfile = open(tweetscoreoutputfilename, "w")
+    writingfile = open(tweetscoreoutputfilename, "w",  encoding='utf-8')
     writingfile.close()
     processandwritetofile(tweetscoreoutputfilename, readerfulltext, lexiconArray, hashtablelex)
 
@@ -542,7 +543,7 @@ if __name__ == "__main__":
 
 
 #todo:
-#add pre conditions and post conditions
+#do we need to add preconditions and postcondtions when we have already documented params, returns and function description?
 #understand what to do for ML task
 #Everything works and are documented and tested. If theres something to do, its probably cleaning code for better
 # look since its messy. The codings can also be edited to be more efficient.

@@ -19,16 +19,18 @@ def makeQuery(cursor,sentences):
         x= k
         x = re.sub('['+string.punctuation+']', '', str(x)).split() 
         sentences.append(x)
+        #print(x)
 if __name__ == "__main__":
-    sentences = []
+    sentences = {}
     cnx = mysql.connector.connect(user='root', password='password',
                               host='127.0.0.1',
                               database='twitter')
 
     cursor = cnx.cursor()
     makeQuery(cursor,sentences)
-    model = gensim.models.Word2Vec(sentences, min_count=1)
-    print(model)
+    for k in range(len(sentences)):
+        model = gensim.models.Word2Vec(sentences[k], min_count=1)
+        print(model)
     model.save('model.bin')
     # load model
     new_model = gensim.models.Word2Vec.load('model.bin')

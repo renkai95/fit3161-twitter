@@ -54,6 +54,9 @@ def readFile(idFile,replyFile):
                 pass    
         f.close()
     return tweet_ids,replied_inlist,replied_to
+def makeQuery(cursor):
+    cursor.execute("select ")
+
 
 def trimTerminators(replied_to,replied_inlist):
     '''

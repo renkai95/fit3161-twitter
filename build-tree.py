@@ -55,9 +55,26 @@ def readFile(idFile,replyFile):
         f.close()
     return tweet_ids,replied_inlist,replied_to
 def makeQuery(cursor):
-    cursor.execute("select ")
-
-
+    tweet_ids={}
+    replied_inlist={}
+    replied_to=[]
+    cursor.execute("select id_str from twitter.harvey_cleaned;")
+    myresult = cursor.fetchall()
+    for k in myresult:
+        tweet_ids[str(k[0])]=str(k[0])
+    cursor.execute("select id_str,in_reply_to_status_id_str,user_name,in_reply_to_screen_name,user_followers_count from twitter.harvey_cleaned where in_reply_to_status_id_str != '';")
+    myresult = cursor.fetchall()
+    for row in myresult:
+        try:
+            
+            tweet_ids[row[1]]
+            replied_to.append((str(row[0]),row[1]))
+            replied_inlist[str(row[0])]=row[1]
+            tweet_ids[str(row[0])]=row[2]
+            tweet_ids[row[1]]=row[3]
+        except KeyError:
+            pass
+    return tweet_ids,replied_inlist,replied_to
 def trimTerminators(replied_to,replied_inlist):
     '''
     If replied to tweet exists outside of the dataset, we terminate them by having the edge to the same node
@@ -80,6 +97,7 @@ def buildReplyTree(replied_to,tweet_ids):
     :param tweet_ids: List of all tweet ids
     :return forest: List of all reply trees
     '''
+
     nodes = {}
     for i in tweet_ids:
         nodes[i] = { 'id': i }
@@ -155,17 +173,21 @@ if __name__ == "__main__":
 
 
     '''
-    idFile = sys.argv[1]
-    replyFile = sys.argv[2]
-    cnx = mysql.connector.connect(user='root', password='password',
+    try:
+        idFile = sys.argv[1]
+        replyFile = sys.argv[2]
+        tweet_ids,replied_inlist,replied_to=readFile(idFile,replyFile)
+    except IndexError:
+        cnx = mysql.connector.connect(user='root', password='password',
                               host='127.0.0.1',
                               database='twitter')
 
-    cursor = cnx.cursor()
+        cursor = cnx.cursor()
+        tweet_ids,replied_inlist,replied_to=makeQuery(cursor)
     #cursor.execute("SELECT * FROM harvey_cleaned")
     #myresult = cursor.fetchone()
     #print(myresult)
-    tweet_ids,replied_inlist,replied_to=readFile(idFile,replyFile)
+    
     trimTerminators(replied_to,replied_inlist)
     forest = buildReplyTree(replied_to,tweet_ids)
     plotGraphs(forest,tweet_ids)

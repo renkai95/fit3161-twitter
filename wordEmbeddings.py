@@ -28,17 +28,17 @@ if __name__ == "__main__":
                               host='127.0.0.1',
                               database='twitter')
 
-	#cursor = cnx.cursor()
-	#makeQuery(cursor,sentences)
-	#print("Done")
-	#model = gensim.models.FastText(sentences, size=100, window=3, min_count=2, workers=8)
-	#print(model)
-	#model.save('model.bin')
+	cursor = cnx.cursor()
+	makeQuery(cursor,sentences)
+	print("Done")
+	model = gensim.models.Word2Vec(sentences, size=100, window=3, min_count=2, workers=8)
+	print(model)
+	model.save('model.bin')
     #load model
 	new_model = gensim.models.Word2Vec.load('model.bin')
 	print(new_model)
-	print(new_model.wv.most_similar(positive=['afraid']))
-	for k in range(100):
+	print(new_model.wv.most_similar(positive=['afraid','fear','scared','scare']))
+	for k in range(10):
 		print(new_model.wv.index2word[k])
     #print(new_model.wv.most_similar(positive=['no']))
 	cnx.close()

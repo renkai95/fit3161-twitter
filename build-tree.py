@@ -55,6 +55,11 @@ def readFile(idFile,replyFile):
         f.close()
     return tweet_ids,replied_inlist,replied_to
 def makeQuery(cursor):
+    '''
+    This function makes a db query if there is no arguments supplied.
+    :param cursor: A mysql cursor
+     returns: dict of tweet ids, dict of all reply ids, list of tuples of reply ids
+    '''
     tweet_ids={}
     replied_inlist={}
     replied_to=[]
@@ -184,10 +189,7 @@ if __name__ == "__main__":
 
         cursor = cnx.cursor()
         tweet_ids,replied_inlist,replied_to=makeQuery(cursor)
-    #cursor.execute("SELECT * FROM harvey_cleaned")
-    #myresult = cursor.fetchone()
-    #print(myresult)
-    
+
     trimTerminators(replied_to,replied_inlist)
     forest = buildReplyTree(replied_to,tweet_ids)
     plotGraphs(forest,tweet_ids)

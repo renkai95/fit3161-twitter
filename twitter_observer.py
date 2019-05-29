@@ -24,7 +24,28 @@ if __name__=="__main__":
             print("Cannot find",sys.argv[2],"\n Usage: insert-db infile ")
 
     elif sys.argv[1] == "build-tree":
-        if sys.argv[2]!="":
+        #print(int(sys.argv[3]))
+        if sys.argv[2]!="" and sys.argv[3]!="":
+            
+            bt.buildTree(cursor,sys.argv[2],int(sys.argv[3]))
+        elif sys.argv[2]!="":
             bt.buildTree(cursor,sys.argv[2])
         else:
-            print("ERROR: Usage: python build-tree tablename")
+            print("ERROR: Usage: build-tree tablename or build-tree tablename noOfGraphs")
+    elif sys.argv[1] == "wordEmbed":
+        x = input("\nEnter a comma separated list of words: ")
+        if sys.argv[2]!="" and x!="":
+            we.wordEmbed(cursor,x.split(','),sys.argv[2])
+        else:
+            if x=="":
+                print("Error: input cannot be empty")
+            print("Error: usage: wordEmbed tablename")
+    else:
+        print("""
+        Unknown command
+        use: 
+        ----parse-json infile outfile
+        ----insert-db infile
+        ----build-tree tablename or build-tree tablename noOfGraphs
+        ----wordEmbed tablename
+        """)

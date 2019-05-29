@@ -176,7 +176,7 @@ def createLog(forest):
                 
 
 
-def plotGraphs(forest,tweet_ids):
+def plotGraphs(forest,tweet_ids,noGraphs = 10):
     '''
     Plots all graphs in the forest.
     :param forest: List of reply trees
@@ -190,7 +190,7 @@ def plotGraphs(forest,tweet_ids):
             'size'   : 1}
 
     plt.rc('font', **font)
-    for row in range(len(forest)) :
+    for row in range(noGraphs):
         test = 1
         #print(row)
         g = nx.Graph()
@@ -199,14 +199,15 @@ def plotGraphs(forest,tweet_ids):
         d=dict(g.degree)
         nx.draw_networkx(g, pos = nx.fruchterman_reingold_layout(g),node_size=[v * 2 for v in d.values()],font_size=1,width =0.08)
         plt.savefig('../DATA/graph'+str(row)+'.png' ,dpi = 1200)
-        #print(row)
+        print(row)
         g.clear()
         plt.clf()
-def buildTree(cursor,tableName):
+def buildTree(cursor,tableName,noGraphs = 10):
+    #print(noGraphs)
     tweet_ids,replied_inlist,replied_to=makeQueryDB(cursor,tableName)    
     trimTerminators(replied_to,replied_inlist)
     forest = buildReplyTree(replied_to,tweet_ids)
-    plotGraphs(forest,tweet_ids)
+    plotGraphs(forest,tweet_ids,noGraphs)
 
 if __name__ == "__main__":
     '''

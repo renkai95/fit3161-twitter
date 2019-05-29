@@ -20,9 +20,15 @@ def traverse(g,node,tweet_ids):
     '''
     try:
         node['id_children']
+
     except KeyError:
         return
+    
     for child in node['id_children']:
+        try:
+            tweet_ids[child['id']]
+        except KeyError:
+            return
         g.add_node(tweet_ids[child['id']])
         g.add_node(tweet_ids[node['id']])
         g.add_edge(tweet_ids[child['id']],tweet_ids[node['id']])
@@ -68,6 +74,34 @@ def makeQuery(cursor):
     for k in myresult:
         tweet_ids[str(k[0])]=str(k[0])
     cursor.execute("select id_str,in_reply_to_status_id_str,user_name,in_reply_to_screen_name,user_followers_count from twitter.harvey_cleaned where in_reply_to_status_id_str != '';")
+    myresult = cursor.fetchall()
+    for row in myresult:
+        try:
+            
+            tweet_ids[row[1]]
+            replied_to.append((str(row[0]),row[1]))
+            replied_inlist[str(row[0])]=row[1]
+            tweet_ids[str(row[0])]=row[2]
+            tweet_ids[row[1]]=row[3]
+        except KeyError:
+            pass
+    return tweet_ids,replied_inlist,replied_to
+
+def makeQueryDB(cursor,tableName):
+    '''
+    This function makes a db query if there is no arguments supplied.
+    :param cursor: A mysql cursor
+     returns: dict of tweet ids, dict of all reply ids, list of tuples of reply ids
+    '''
+    tweet_ids={}
+    replied_inlist={}
+    replied_to=[]
+    #print("select id_str from "+ tableName+";")
+    cursor.execute("select id_str from "+ tableName+";")
+    myresult = cursor.fetchall()
+    for k in myresult:
+        tweet_ids[str(k[0])]=str(k[0])
+    cursor.execute("select id_str,in_reply_to_status_id_str,user_name,in_reply_to_screen_name,user_followers_count from "+tableName+ " where in_reply_to_status_id_str != '';")
     myresult = cursor.fetchall()
     for row in myresult:
         try:
@@ -126,8 +160,8 @@ def buildReplyTree(replied_to,tweet_ids):
             forest.remove(row)
     forest.sort(key=lambda x:len(x["id_children"]),reverse=1)
     forest = list({v['id']:v for v in forest}.values())
-    print(len(forest))
-    print(forest.count(forest[0]))
+    #print(len(forest))
+    #print(forest.count(forest[0]))
     return forest
 
 def createLog(forest):
@@ -165,11 +199,14 @@ def plotGraphs(forest,tweet_ids):
         d=dict(g.degree)
         nx.draw_networkx(g, pos = nx.fruchterman_reingold_layout(g),node_size=[v * 2 for v in d.values()],font_size=1,width =0.08)
         plt.savefig('../DATA/graph'+str(row)+'.png' ,dpi = 1200)
-        print(row)
+        #print(row)
         g.clear()
         plt.clf()
-
-
+def buildTree(cursor,tableName):
+    tweet_ids,replied_inlist,replied_to=makeQueryDB(cursor,tableName)    
+    trimTerminators(replied_to,replied_inlist)
+    forest = buildReplyTree(replied_to,tweet_ids)
+    plotGraphs(forest,tweet_ids)
 
 if __name__ == "__main__":
     '''
@@ -194,3 +231,5 @@ if __name__ == "__main__":
     forest = buildReplyTree(replied_to,tweet_ids)
     plotGraphs(forest,tweet_ids)
     cnx.close()
+
+    

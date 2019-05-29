@@ -11,7 +11,16 @@ if __name__=="__main__":
                               host='127.0.0.1',
                               database='twitter')
     cursor = cnx.cursor()
-    if sys.argv[1] == "parse-json":
+    if len(sys.argv)<2:
+        print("""
+        Unknown command
+        commands: 
+        ----parse-json infile outfile
+        ----insert-db infile
+        ----build-tree tablename or build-tree tablename noOfGraphs
+        ----wordEmbed tablename
+        """)
+    elif sys.argv[1] == "parse-json":
         if os.path.isfile(sys.argv[2]):
             rf.readFileCsv(sys.argv[2],sys.argv[3])
         else:
@@ -43,7 +52,7 @@ if __name__=="__main__":
     else:
         print("""
         Unknown command
-        use: 
+        commands: 
         ----parse-json infile outfile
         ----insert-db infile
         ----build-tree tablename or build-tree tablename noOfGraphs

@@ -48,11 +48,13 @@ def testTrimTerminators():
 
     
     
+def testAll():
+    testTraverse()
+    #testBuildReplyTree()
 
+    testTrimTerminators()
 
 
 if __name__ == "__main__":
-    testTraverse()
+    testAll()
 
-    testTrimTerminators()
-    #testBuildReplyTree()

@@ -5,8 +5,10 @@ import wordEmbeddings as we
 import mysql.connector
 import os
 import ntpath
+import twitter_obs_test as obsTest
 
 if __name__=="__main__":
+    
     cnx = mysql.connector.connect(user='root', password='password',
                               host='127.0.0.1',
                               database='twitter')

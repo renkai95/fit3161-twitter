@@ -36,10 +36,10 @@ if __name__=="__main__":
 
     elif sys.argv[1] == "build-tree":
         #print(int(sys.argv[3]))
-        if sys.argv[2]!="" and sys.argv[3]!="":
+        if len(sys.argv)==4:
             
             bt.buildTree(cursor,sys.argv[2],int(sys.argv[3]))
-        elif sys.argv[2]!="":
+        elif len(sys.argv)==3:
             bt.buildTree(cursor,sys.argv[2])
         else:
             print("ERROR: Usage: build-tree tablename or build-tree tablename noOfGraphs")

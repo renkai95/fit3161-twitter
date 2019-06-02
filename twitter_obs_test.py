@@ -46,6 +46,7 @@ def testTrimTerminators():
     assert len(replied_to)==0, "no input replied to data does not add terminators"
 
 
+
     
     
 def testAll():

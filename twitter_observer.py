@@ -45,7 +45,7 @@ if __name__=="__main__":
             print("ERROR: Usage: build-tree tablename or build-tree tablename noOfGraphs")
     elif sys.argv[1] == "wordEmbed":
         x = input("\nEnter a comma separated list of words: ")
-        if sys.argv[2]!="" and x!="":
+        if len(sys.argv)== 3 and x!="":
             we.wordEmbed(cursor,x.split(','),sys.argv[2])
         else:
             if x=="":
